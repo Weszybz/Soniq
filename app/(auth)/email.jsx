@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable } from 'react-native'
 import React from 'react'
 import { Colors } from '../../constants/Colors';
+import { useRouter } from 'expo-router';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -17,12 +18,33 @@ const email = () => {
         console.log('login form submitted')
     }
 
+    const router = useRouter()
+
     return (
         <ThemedView style = {styles.container}>
+            <Pressable 
+                onPress={() => router.push('/')}
+                style={{
+                    position: 'absolute',
+                    top: 50,          // adjust for status bar / safe area
+                    left: 20,
+                    zIndex: 10,       // keep it above page content
+                    padding: 8,
+                }}
+            >
+                <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
+            </Pressable>
+
+            <ThemedText style={styles.title}>What's your email?</ThemedText>
+            <Spacer />
             <ThemedTextInput
                 placeholder="Email Address"
                 keyboardType="email-address"
             />
+
+            <Spacer />
+            <Spacer />
+            <Spacer />
             <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
                 By tapping Continue, you are agreeing to our{' '}
                 <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
@@ -42,6 +64,11 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    title: {
+        fontFamily: 'inter',
+        fontWeight: 'bold',
+        fontSize: 24
     },
     buttonText: {
         fontFamily: 'inter',
