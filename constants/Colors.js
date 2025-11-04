@@ -1,0 +1,30 @@
+export const Colors = {
+  primary: "#6366f1",
+  success: "#34d399",
+  error: "#cc475a",
+  
+  dark: {
+    textPrimary: "#f9fafb",
+    textSecondary: "#9ca3af",
+    title: "#fff",
+    background: "#0f172a",
+    navBackground: "#201e2b",
+    iconColor: "#9591a5",
+    iconColorFocused: "#fff",
+    uiBackground: "#2f2b3d",
+    divider: "#334155",
+    button: "#818cf8",
+  },
+  light: {
+    textPrimary: "#111827",
+    textSecondary: "#6b7280",
+    title: "#201e2b",
+    background: "#f9fafb",
+    navBackground: "#e8e7ef",
+    iconColor: "#686477",
+    iconColorFocused: "#201e2b",
+    uiBackground: "#d6d5e1",
+    divider: "#d2d5d8",
+    button: "#6366f1",
+  },
+}
