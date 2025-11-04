@@ -1,5 +1,6 @@
 export const Colors = {
   primary: "#6366f1",
+  button: "#818cf8",
   success: "#34d399",
   error: "#cc475a",
   
