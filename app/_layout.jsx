@@ -1,11 +1,18 @@
 import { Stack } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function RootLayout() {
+const RootLayout = () => {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <Stack screenOptions={{
+      headerStyle: { backgroundColor: '#ddd' },
+      headerTintColor: '#333',
+    }}>
+      <Stack.Screen name ="index" options={{ title: 'Home'}}/>
+      <Stack.Screen name ="email" options={{ title: 'Email', headerShown: false }}/>
+    </Stack>
   );
 }
+
+export default RootLayout
+
+const styles = StyleSheet.create({})
