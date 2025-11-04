@@ -17,7 +17,6 @@ const email = () => {
     const router = useRouter()
     
     const handleSubmit = () => {
-        console.log('login form submitted')
         router.push('/password')
     }
 

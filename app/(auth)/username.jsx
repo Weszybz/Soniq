@@ -10,14 +10,14 @@ import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
 
-const Password = () => {
+const Username = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
     const router = useRouter()
 
     const handleSubmit = () => {
-        router.push('/names')
+        router.back()
     }
 
     return (
@@ -36,15 +36,15 @@ const Password = () => {
             </Pressable>
 
             
-            <ThemedText style={styles.title}>Choose a Password</ThemedText>
+            <ThemedText style={styles.title}>Pick a username</ThemedText>
             <Spacer />
             <ThemedTextInput
-                placeholder="Password"
-                // secureTextEntry
-                keyboardType="Password"
+                placeholder="Username"
+                keyboardType="twitter"
+                style={{textAlign:'center'}}
             />
             <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                Your password must be at least 8 characters
+                􀁣 Available!
             </Text>
 
             
@@ -59,7 +59,7 @@ const Password = () => {
     )
 }
 
-export default Password
+export default Username
 
 const styles = StyleSheet.create({
     container: {
@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     textSecondary: {
         fontFamily: 'inter',
         fontStyle: 'normal',
-        fontWeight: '600',
-        fontSize: 14,
+        fontWeight: 'bold',
+        fontSize: 16,
         width: '75%',
         textAlign: 'center'
     },

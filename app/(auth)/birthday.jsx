@@ -18,8 +18,7 @@ const Birthday = () => {
     const router = useRouter()
     
     const handleSubmit = () => {
-        console.log('login form submitted')
-        router.push('/')
+        router.push('/username')
     }
 
     const [date, setDate] = useState(null);
