@@ -15,6 +15,9 @@ export const Colors = {
     uiBackground: "#1e293b",
     divider: "#334155",
     button: "#818cf8",
+    dateBackground: "#050816",
+    dateBorder: "#1F2937"
+
   },
   light: {
     textPrimary: "#111827",
@@ -27,5 +30,7 @@ export const Colors = {
     uiBackground: "#e5e7eb",
     divider: "#d2d5d8",
     button: "#6366f1",
+    dateBackground: "#f2f2f7",
+    dateBorder: "#c6c6c8"
   },
 }

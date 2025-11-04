@@ -18,7 +18,7 @@ const Names = () => {
     
     const handleSubmit = () => {
         console.log('login form submitted')
-        router.push('/')
+        router.push('/birthday')
     }
 
     return (

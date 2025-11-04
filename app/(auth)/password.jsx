@@ -41,6 +41,7 @@ const Password = () => {
             <Spacer />
             <ThemedTextInput
                 placeholder="Password"
+                // secureTextEntry
                 keyboardType="Password"
             />
             <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
