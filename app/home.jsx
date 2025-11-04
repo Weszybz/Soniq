@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, useColorScheme } from 'react-native'
 import React from 'react'
+import { Link } from 'expo-router'
 import { Colors } from '../constants/Colors';
 
 // themed components
@@ -8,29 +9,26 @@ import ThemedText from '../components/ThemedText';
 import Spacer from '../components/Spacer';
 import ThemedButton from '../components/ThemedButton';
 
-const email = () => {
+const Home = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
-    
+
     const handleSubmit = () => {
         console.log('login form submitted')
     }
-
-    return (
-        <ThemedView style = {styles.container}>
-        <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-            By tapping Continue, you are agreeing to our{' '}
-            <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
-            <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
-        </Text>
-        <ThemedButton onPress={handleSubmit}>
-                <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-        </ThemedButton>
-        </ThemedView>
-    )
+  return (
+    <ThemedView style ={styles.container}>
+      <ThemedText>Home</ThemedText>
+      <Spacer />
+      <ThemedButton onPress={handleSubmit}>
+        <ThemedText style = {styles.buttonText}>Login</ThemedText>
+      </ThemedButton>
+      <Link href="/email">Sign Up</Link>
+    </ThemedView>
+  )
 }
 
-export default email
+export default Home
 
 const styles = StyleSheet.create({
     container: {
@@ -43,13 +41,5 @@ const styles = StyleSheet.create({
         fontStyle: 'normal',
         fontWeight: 'bold',
         fontSize: 20
-    },
-    textSecondary: {
-        fontFamily: 'inter',
-        fontStyle: 'normal',
-        fontWeight: '600',
-        fontSize: 14,
-        marginHorizontal: 70,
-        textAlign: 'center'
-    },
+    }
 })

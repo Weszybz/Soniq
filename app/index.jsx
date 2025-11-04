@@ -9,7 +9,7 @@ import ThemedText from '../components/ThemedText';
 import Spacer from '../components/Spacer';
 import ThemedButton from '../components/ThemedButton';
 
-const Home = () => {
+const Index = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
@@ -18,7 +18,7 @@ const Home = () => {
     }
   return (
     <ThemedView style ={styles.container}>
-      <ThemedText>Home</ThemedText>
+      <ThemedText>Index</ThemedText>
       <Spacer />
       <ThemedButton onPress={handleSubmit}>
         <ThemedText style = {styles.buttonText}>Login</ThemedText>
@@ -28,7 +28,7 @@ const Home = () => {
   )
 }
 
-export default Home
+export default Index
 
 const styles = StyleSheet.create({
     container: {
