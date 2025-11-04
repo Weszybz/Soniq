@@ -17,7 +17,7 @@ const Home = () => {
         console.log('login form submitted')
     }
   return (
-    <ThemedView style ={styles.container}>
+    <ThemedView style ={styles.container} safe = {true}>
       <ThemedText>Home</ThemedText>
       <Spacer />
       <ThemedButton onPress={handleSubmit}>

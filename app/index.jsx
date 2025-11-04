@@ -17,7 +17,7 @@ const Index = () => {
         console.log('login form submitted')
     }
   return (
-    <ThemedView style ={styles.container}>
+    <ThemedView style ={styles.container} safe = {true}>
       <ThemedText>Index</ThemedText>
       <Spacer />
       <ThemedButton onPress={handleSubmit}>

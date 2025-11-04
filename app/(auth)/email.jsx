@@ -21,7 +21,7 @@ const email = () => {
     const router = useRouter()
 
     return (
-        <ThemedView style = {styles.container}>
+        <ThemedView style = {styles.container} safe = {true}>
             <Pressable 
                 onPress={() => router.push('/')}
                 style={{
@@ -35,6 +35,7 @@ const email = () => {
                 <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
             </Pressable>
 
+            
             <ThemedText style={styles.title}>What's your email?</ThemedText>
             <Spacer />
             <ThemedTextInput
@@ -42,9 +43,8 @@ const email = () => {
                 keyboardType="email-address"
             />
 
-            <Spacer />
-            <Spacer />
-            <Spacer />
+            <Spacer style={{height: 100}}/>
+
             <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
                 By tapping Continue, you are agreeing to our{' '}
                 <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
@@ -63,12 +63,13 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        // justifyContent: 'center',
     },
     title: {
         fontFamily: 'inter',
         fontWeight: 'bold',
-        fontSize: 24
+        fontSize: 24,
+        paddingTop: '35%'
     },
     buttonText: {
         fontFamily: 'inter',
