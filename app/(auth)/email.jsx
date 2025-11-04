@@ -7,6 +7,7 @@ import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
 import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
+import ThemedTextInput from '../../components/ThemedTextInput';
 
 const email = () => {
     const colorScheme = useColorScheme()
@@ -18,14 +19,18 @@ const email = () => {
 
     return (
         <ThemedView style = {styles.container}>
-        <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-            By tapping Continue, you are agreeing to our{' '}
-            <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
-            <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
-        </Text>
-        <ThemedButton onPress={handleSubmit}>
-                <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-        </ThemedButton>
+            <ThemedTextInput
+                placeholder="Email Address"
+                keyboardType="email-address"
+            />
+            <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
+                By tapping Continue, you are agreeing to our{' '}
+                <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
+                <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
+            </Text>
+            <ThemedButton onPress={handleSubmit}>
+                    <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
+            </ThemedButton>
         </ThemedView>
     )
 }
@@ -49,7 +54,7 @@ const styles = StyleSheet.create({
         fontStyle: 'normal',
         fontWeight: '600',
         fontSize: 14,
-        marginHorizontal: 70,
+        width: '65%',
         textAlign: 'center'
     },
 })
