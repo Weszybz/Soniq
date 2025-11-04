@@ -10,21 +10,20 @@ import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
 
-const email = () => {
+const Password = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
-
-    const router = useRouter()
     
     const handleSubmit = () => {
         console.log('login form submitted')
-        router.push('/password')
     }
+
+    const router = useRouter()
 
     return (
         <ThemedView style = {styles.container} safe = {true}>
             <Pressable 
-                onPress={() => router.push('/')}
+                onPress={() => router.back()}
                 style={{
                     position: 'absolute',
                     top: 50,          // adjust for status bar / safe area
@@ -37,20 +36,17 @@ const email = () => {
             </Pressable>
 
             
-            <ThemedText style={styles.title}>What's your email?</ThemedText>
+            <ThemedText style={styles.title}>Choose a Password</ThemedText>
             <Spacer />
             <ThemedTextInput
-                placeholder="Email Address"
-                keyboardType="email-address"
+                placeholder="Password"
+                keyboardType="Password"
             />
-
-            <Spacer style={{height: 100}}/>
-
             <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                By tapping Continue, you are agreeing to our{' '}
-                <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
-                <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
+                Your password must be at least 8 characters
             </Text>
+
+            
             <ThemedButton style={{
                 position: 'absolute',
                 top: '61.8%',
@@ -62,7 +58,7 @@ const email = () => {
     )
 }
 
-export default email
+export default Password
 
 const styles = StyleSheet.create({
     container: {
@@ -87,7 +83,7 @@ const styles = StyleSheet.create({
         fontStyle: 'normal',
         fontWeight: '600',
         fontSize: 14,
-        width: '65%',
+        width: '75%',
         textAlign: 'center'
     },
 })
