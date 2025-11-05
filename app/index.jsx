@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, useColorScheme } from 'react-native'
 import React from 'react'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { Colors } from '../constants/Colors';
 
 // themed components
@@ -13,8 +13,12 @@ const Index = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
+    const router = useRouter()
+
     const handleSubmit = () => {
         console.log('login form submitted')
+        router.push('/login')
+
     }
   return (
     <ThemedView style ={styles.container} safe = {true}>

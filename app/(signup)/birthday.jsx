@@ -19,6 +19,7 @@ const Birthday = () => {
     
     const handleSubmit = () => {
         router.push('/username')
+        console.log('DoB:', date)
     }
 
     const [date, setDate] = useState(null);
@@ -60,6 +61,7 @@ const Birthday = () => {
                 placeholder={todayString}
                 keyboardType="default"
                 editable={false}
+                onChangeText={date}
                 value={
                     date
                         ? date.toLocaleDateString('en-GB', {

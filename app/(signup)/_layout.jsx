@@ -3,7 +3,7 @@ import { StatusBar, useColorScheme, Pressable, Text } from "react-native"
 import { Colors } from "../../constants/Colors"
 import { useRouter } from "expo-router"
 
-export default function AuthLayout() {
+export default function SignUpLayout() {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
     const router = useRouter()

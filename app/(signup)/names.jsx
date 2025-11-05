@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, useColorScheme, Pressable } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 
@@ -15,9 +15,13 @@ const Names = () => {
     const theme = Colors[colorScheme] ?? Colors.light
 
     const router = useRouter()
+
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
     
     const handleSubmit = () => {
         router.push('/birthday')
+        console.log('Name:', firstName, lastName)
     }
 
     return (
@@ -41,10 +45,14 @@ const Names = () => {
             <ThemedTextInput
                 placeholder="First Name"
                 keyboardType="default"
+                onChangeText={setFirstName}
+                value={firstName}
             />
             <ThemedTextInput
                 placeholder="Last Name"
                 keyboardType="default"
+                onChangeText={setLastName}
+                value={lastName}
             />
             <ThemedButton style={{
                 position: 'absolute',

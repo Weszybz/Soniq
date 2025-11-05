@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, useColorScheme, Pressable } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 
@@ -10,14 +10,18 @@ import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
 
-const Username = () => {
+const Login = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
     const router = useRouter()
 
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    
     const handleSubmit = () => {
-        router.push('/image')
+        router.push('/')
+        console.log('Log In:', email, password)
     }
 
     return (
@@ -36,18 +40,22 @@ const Username = () => {
             </Pressable>
 
             
-            <ThemedText style={styles.title}>Pick a username</ThemedText>
+            <ThemedText style={styles.title}>Login to Your Account</ThemedText>
+            <Spacer />
             <Spacer />
             <ThemedTextInput
-                placeholder="Username"
-                keyboardType="twitter"
-                style={{textAlign:'center'}}
+                placeholder="Email"
+                keyboardType="email-address"
+                onChangeText={setEmail}
+                value={email}
             />
-            <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                􀁣 Available!
-            </Text>
-
-            
+            <ThemedTextInput
+                placeholder="Password"
+                keyboardType="default"
+                secureTextEntry
+                onChangeText={setPassword}
+                value={password}
+            />
             <ThemedButton style={{
                 position: 'absolute',
                 top: '61.8%',
@@ -59,7 +67,7 @@ const Username = () => {
     )
 }
 
-export default Username
+export default Login
 
 const styles = StyleSheet.create({
     container: {
@@ -82,9 +90,9 @@ const styles = StyleSheet.create({
     textSecondary: {
         fontFamily: 'inter',
         fontStyle: 'normal',
-        fontWeight: 'bold',
-        fontSize: 16,
-        width: '75%',
+        fontWeight: '600',
+        fontSize: 14,
+        width: '65%',
         textAlign: 'center'
     },
 })
