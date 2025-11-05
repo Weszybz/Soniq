@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
@@ -24,43 +24,45 @@ const Username = () => {
     }
 
     return (
-        <ThemedView style = {styles.container} safe = {true}>
-            <Pressable 
-                onPress={() => router.back()}
-                style={{
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ThemedView style = {styles.container} safe = {true}>
+                <Pressable 
+                    onPress={() => router.back()}
+                    style={{
+                        position: 'absolute',
+                        top: 50,          // adjust for status bar / safe area
+                        left: 20,
+                        zIndex: 10,       // keep it above page content
+                        padding: 8,
+                    }}
+                >
+                    <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
+                </Pressable>
+
+                
+                <ThemedText style={styles.title}>Pick a username</ThemedText>
+                <Spacer />
+                <ThemedTextInput
+                    placeholder="Username"
+                    keyboardType="twitter"
+                    style={{textAlign:'center'}}
+                    onChangeText={setUsername}
+                    valuse={username}
+                />
+                <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
+                    􀁣 Available!
+                </Text>
+
+                
+                <ThemedButton style={{
                     position: 'absolute',
-                    top: 50,          // adjust for status bar / safe area
-                    left: 20,
-                    zIndex: 10,       // keep it above page content
-                    padding: 8,
-                }}
-            >
-                <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
-            </Pressable>
-
-            
-            <ThemedText style={styles.title}>Pick a username</ThemedText>
-            <Spacer />
-            <ThemedTextInput
-                placeholder="Username"
-                keyboardType="twitter"
-                style={{textAlign:'center'}}
-                onChangeText={setUsername}
-                valuse={username}
-            />
-            <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                􀁣 Available!
-            </Text>
-
-            
-            <ThemedButton style={{
-                position: 'absolute',
-                top: '61.8%',
-            }} 
-            onPress={handleSubmit}>
-                    <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-            </ThemedButton>
-        </ThemedView>
+                    top: '61.8%',
+                }} 
+                onPress={handleSubmit}>
+                        <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
+                </ThemedButton>
+            </ThemedView>
+        </TouchableWithoutFeedback>
     )
 }
 

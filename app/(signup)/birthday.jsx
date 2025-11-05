@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, Platform } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, Platform, TouchableWithoutFeedback } from 'react-native'
 import { React, useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
@@ -40,67 +40,69 @@ const Birthday = () => {
     };
 
     return (
-        <ThemedView style = {styles.container} safe = {true}>
-            <Pressable 
-                onPress={() => router.back()}
-                style={{
-                    position: 'absolute',
-                    top: 50,          // adjust for status bar / safe area
-                    left: 20,
-                    zIndex: 10,       // keep it above page content
-                    padding: 8,
-                }}
-            >
-                <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
-            </Pressable>
-
-            
-            <ThemedText style={styles.title}>What's your date of birth?</ThemedText>
-            <Spacer />
-            <ThemedTextInput
-                placeholder={todayString}
-                keyboardType="default"
-                editable={false}
-                onChangeText={date}
-                value={
-                    date
-                        ? date.toLocaleDateString('en-GB', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                        })
-                        : ''
-                    }
-                onPressIn={() => setShow(true)}
-            />
-            <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                Your birthday won't be shown publicly
-            </Text>
-            <ThemedButton style={{
-                position: 'absolute',
-                top: '61.8%',
-            }} 
-            onPress={handleSubmit}>
-                    <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-            </ThemedButton>
-
-
-            {show && (
-                <View style={[styles.datePicker, {borderTopColor: theme.divider, backgroundColor: theme.dateBackground}]}>
-                    <DateTimePicker
-                    value={date || new Date}
-                    mode="date"
-                    display="spinner"
-                    onChange={onChange}
-                    minimumDate={new Date(1900, 0, 1)} // optional
-                    maximumDate={new Date()} // optional
+        <TouchableWithoutFeedback onPress={() => setShow(false)}>
+            <ThemedView style = {styles.container} safe = {true}>
+                <Pressable 
+                    onPress={() => router.back()}
                     style={{
-                        transform: [{ scaleY: 1.0}, {scaleX: 1.15 }],
+                        position: 'absolute',
+                        top: 50,          // adjust for status bar / safe area
+                        left: 20,
+                        zIndex: 10,       // keep it above page content
+                        padding: 8,
                     }}
-                    />
-                </View>
-            )}
-        </ThemedView>
+                >
+                    <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
+                </Pressable>
+
+                
+                <ThemedText style={styles.title}>What's your date of birth?</ThemedText>
+                <Spacer />
+                <ThemedTextInput
+                    placeholder={todayString}
+                    keyboardType="default"
+                    editable={false}
+                    onChangeText={date}
+                    value={
+                        date
+                            ? date.toLocaleDateString('en-GB', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                            })
+                            : ''
+                        }
+                    onPressIn={() => setShow(true)}
+                />
+                <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
+                    Your birthday won't be shown publicly
+                </Text>
+                <ThemedButton style={{
+                    position: 'absolute',
+                    top: '61.8%',
+                }} 
+                onPress={handleSubmit}>
+                        <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
+                </ThemedButton>
+
+
+                {show && (
+                    <View style={[styles.datePicker, {borderTopColor: theme.divider, backgroundColor: theme.dateBackground}]}>
+                        <DateTimePicker
+                        value={date || new Date}
+                        mode="date"
+                        display="spinner"
+                        onChange={onChange}
+                        minimumDate={new Date(1900, 0, 1)} // optional
+                        maximumDate={new Date()} // optional
+                        style={{
+                            transform: [{ scaleY: 1.0}, {scaleX: 1.15 }],
+                        }}
+                        />
+                    </View>
+                )}
+            </ThemedView>
+        </TouchableWithoutFeedback>
     )
 }
 

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
@@ -25,43 +25,45 @@ const Names = () => {
     }
 
     return (
-        <ThemedView style = {styles.container} safe = {true}>
-            <Pressable 
-                onPress={() => router.back()}
-                style={{
-                    position: 'absolute',
-                    top: 50,          // adjust for status bar / safe area
-                    left: 20,
-                    zIndex: 10,       // keep it above page content
-                    padding: 8,
-                }}
-            >
-                <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
-            </Pressable>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ThemedView style = {styles.container} safe = {true}>
+                <Pressable 
+                    onPress={() => router.back()}
+                    style={{
+                        position: 'absolute',
+                        top: 50,          // adjust for status bar / safe area
+                        left: 20,
+                        zIndex: 10,       // keep it above page content
+                        padding: 8,
+                    }}
+                >
+                    <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
+                </Pressable>
 
-            
-            <ThemedText style={styles.title}>What's your name?</ThemedText>
-            <Spacer />
-            <ThemedTextInput
-                placeholder="First Name"
-                keyboardType="default"
-                onChangeText={setFirstName}
-                value={firstName}
-            />
-            <ThemedTextInput
-                placeholder="Last Name"
-                keyboardType="default"
-                onChangeText={setLastName}
-                value={lastName}
-            />
-            <ThemedButton style={{
-                position: 'absolute',
-                top: '61.8%',
-            }} 
-            onPress={handleSubmit}>
-                    <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-            </ThemedButton>
-        </ThemedView>
+                
+                <ThemedText style={styles.title}>What's your name?</ThemedText>
+                <Spacer />
+                <ThemedTextInput
+                    placeholder="First Name"
+                    keyboardType="default"
+                    onChangeText={setFirstName}
+                    value={firstName}
+                />
+                <ThemedTextInput
+                    placeholder="Last Name"
+                    keyboardType="default"
+                    onChangeText={setLastName}
+                    value={lastName}
+                />
+                <ThemedButton style={{
+                    position: 'absolute',
+                    top: '61.8%',
+                }} 
+                onPress={handleSubmit}>
+                        <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
+                </ThemedButton>
+            </ThemedView>
+        </TouchableWithoutFeedback>
     )
 }
 
