@@ -80,20 +80,79 @@ const Home = () => {
               paddingVertical: 2,
               paddingHorizontal: 16,
               borderRadius: 20,
-              }]}>
+            }]}>
               <Ionicons name="search" size={24} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                   placeholder="Search"
                   keyboardType="default"
                   style={{
                     color: theme.textSecondary,
+                    width: '90%',
                     fontFamily: 'inter',
                     fontWeight: '600',
                     paddingVertical: 12,
                     fontSize: 18,
-                    padding: 0,
-                  }}
-              />
+                }}/>
+            </View>
+            <Spacer />
+            <View style={[ styles.card,
+            { 
+                backgroundColor: theme.cardBackground,
+            }]}>
+                <View style={styles.cardTop}>
+                    <View style={styles.profileUsernameGenre}>
+                        <Image
+                            source={
+                                profileImage
+                                ? { uri: profileImage }
+                                : require('../../assets/icon.png') // fallback / default
+                            }
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 20,
+                            }}
+                        />
+                        <View style={styles.userGenre}>
+                            <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 4,
+                            }}>
+                                <View style ={{
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: 4,
+                                    backgroundColor: '#06B6D4',
+                                }} />
+                                <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
+                            </View>
+                        </View>
+                    </View>
+                    <View style={[styles.cardTopRight, {
+
+                    }]}>
+                        <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                        {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                    </View>
+                </View>
+                <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
+                <View style={styles.waveform}></View>
+                <View style={styles.reactions}>
+                    <View style={styles.reactionsItem}>
+                        <Ionicons name="thumbs-up-outline" size={24} color={theme.textSecondary} />
+                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
+                    </View>
+                    <View style={styles.reactionsItem}>
+                        <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
+                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>17</Text>
+                    </View>
+                    <View style={styles.reactionsItem}>
+                        <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
+                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
+                    </View>
+                </View>
             </View>
 
         </ThemedView>
@@ -110,9 +169,9 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: 'inter',
-        fontWeight: 'bold',
-        fontSize: 24,
-        paddingTop: '35%'
+        fontWeight: '600',
+        fontSize: 20,
+        // paddingTop: '35%'
     },
     buttonText: {
         fontFamily: 'inter',
@@ -144,6 +203,58 @@ const styles = StyleSheet.create({
         gap: 8,
         alignItems: 'center'
         // justifyContent: 'center',
+    },
+    card: {
+        // flexDirection: 'row',
+        borderRadius: 10,
+        width: '90%',
+        // height: '25%',
+        padding: 16,
+        gap: 16,
+        // justifyContent: 'space-between',
+        // alignItems: 'center',
+    },
+    cardTop: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    cardTopRight: {
+        alignSelf: 'center',
+    },
+    profileUsernameGenre: {
+        flexDirection: 'row',
+        gap: 14,
+    },
+    userGenre: {
+
+    },
+    userGenreTitle: {
+        fontFamily: 'inter',
+        fontWeight: '600',
+        fontSize: 16
+    },
+    userGenreText: {
+        fontFamily: 'inter',
+        fontWeight: '500',
+        fontSize: 14
+    },
+    waveform: {
+
+    },
+    reactions: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    reactionsItem: {
+        flexDirection: 'row',
+        gap: 4,
+    },
+    numbers: {
+        fontFamily: 'inter',
+        fontWeight: '500',
+        fontSize: 18
     },
 
 })

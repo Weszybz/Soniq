@@ -15,14 +15,6 @@ export default function AuthLayout() {
         headerShown: false, animation: "none",
         headerStyle: { backgroundColor: theme.navBackground },
         headerTintColor: theme.title,
-        headerLeft: () => (
-          <Pressable
-            onPress={() => router.back()}
-            style={{ paddingHorizontal: 10 }}
-          >
-            <Text style={{ fontSize: 18 }}>←</Text>
-          </Pressable>
-        ),
       }} />
       <ThemedNavBar />
     </>

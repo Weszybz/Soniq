@@ -16,8 +16,8 @@ export const Colors = {
     divider: "#334155",
     button: "#818cf8",
     dateBackground: "#050816",
-    dateBorder: "#1F2937"
-
+    dateBorder: "#1F2937",
+    cardBackground: "#091124",
   },
   light: {
     textPrimary: "#111827",
@@ -31,6 +31,6 @@ export const Colors = {
     divider: "#d2d5d8",
     button: "#6366f1",
     dateBackground: "#f2f2f7",
-    dateBorder: "#c6c6c8"
+    dateBorder: "#c6c6c8",
   },
 }
