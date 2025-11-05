@@ -140,8 +140,8 @@ const Home = () => {
                 <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
                 <View style={styles.waveform}></View>
                 <View style={styles.reactions}>
-                    <View style={styles.reactionsItem}>
-                        <Ionicons name="thumbs-up-outline" size={24} color={theme.textSecondary} />
+                    <View style={styles.likes}>
+                        <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
                         <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
                     </View>
                     <View style={styles.reactionsItem}>
@@ -246,10 +246,17 @@ const styles = StyleSheet.create({
     reactions: {
         flexDirection: 'row',
         gap: 16,
+        alignItems: 'flex-end',        
     },
     reactionsItem: {
         flexDirection: 'row',
         gap: 4,
+        alignItems: 'baseline'
+    },
+    likes: {
+        flexDirection: 'row',
+        gap: 4,
+        alignItems: 'baseline'
     },
     numbers: {
         fontFamily: 'inter',
