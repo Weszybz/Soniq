@@ -19,7 +19,7 @@ const ThemedView = ({ style, safe = false, ...props }) => {
     <View 
       style={[{ 
         backgroundColor: theme.background,
-        paddingTop: insets.top + 40,
+        paddingTop: insets.top + 0,
         paddingBottom: insets.bottom,
       }, 
         style

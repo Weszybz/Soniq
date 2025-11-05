@@ -14,7 +14,7 @@ import ThemedTextInput from '../../components/ThemedTextInput';
 
 const profileIcon = require('../../assets/icon.png');
 
-const Username = () => {
+const Images = () => {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
 
@@ -100,7 +100,7 @@ const Username = () => {
     )
 }
 
-export default Username
+export default Images
 
 const styles = StyleSheet.create({
     container: {
