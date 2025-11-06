@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, useColorScheme, Pressable, Platform, TouchableW
 import { React, useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { useUser } from '../../hooks/useUser';
 import DateTimePicker from '@react-native-community/datetimepicker'
 
 // themed components
@@ -16,10 +17,19 @@ const Birthday = () => {
     const theme = Colors[colorScheme] ?? Colors.light
 
     const router = useRouter()
+
+    const [error, setError] = useState(null)
     
-    const handleSubmit = () => {
-        router.push('/username')
-        console.log('DoB:', date)
+    const { user, registerBirthday } = useUser()
+    
+    const handleSubmit = async () => {
+        try {
+            await registerBirthday(date)
+            router.push('/username')
+            console.log('DoB:', date)
+        } catch (error) {
+            setError(error.message)
+        }
     }
 
     const [date, setDate] = useState(null);
@@ -85,6 +95,7 @@ const Birthday = () => {
                         <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
                 </ThemedButton>
 
+                {error && <Text style={styles.error}>{error}</Text>}
 
                 {show && (
                     <View style={[styles.datePicker, {borderTopColor: theme.divider, backgroundColor: theme.dateBackground}]}>
@@ -135,14 +146,23 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     datePicker: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0, // 👈 stick to bottom
-    borderTopWidth: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingVertical: 24,
-    alignItems: 'center'
-  },
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0, // 👈 stick to bottom
+        borderTopWidth: 1,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        paddingVertical: 24,
+        alignItems: 'center'
+    },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
+    },
 })

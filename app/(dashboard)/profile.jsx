@@ -39,7 +39,10 @@ const Profile = () => {
     <ThemedView style={styles.container} safe={true}>
       <Text>Profile</Text>
 
-      <ThemedText title={true}>{user.email}</ThemedText>
+      <ThemedText title={true}>Email: {user.email}</ThemedText>
+      <ThemedText>Name: {user.name}</ThemedText>
+      <ThemedText>Birthday: {user.prefs.birthday}</ThemedText>
+      <ThemedText>Username: {user.prefs.username}</ThemedText>
 
       <View style={{
           position: 'absolute',

@@ -9,9 +9,7 @@ export default function SignUpLayout() {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
     const router = useRouter()
-    
-    const user = useUser()
-    console.log(user)
+  
   return (
     <>
       <GuestOnly>

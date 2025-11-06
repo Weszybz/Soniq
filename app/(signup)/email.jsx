@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeed
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { useUser } from '../../hooks/useUser';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -9,7 +10,6 @@ import ThemedText from '../../components/ThemedText';
 import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
-import { useUser } from '../../hooks/useUser';
 
 const Email = () => {
     const colorScheme = useColorScheme()

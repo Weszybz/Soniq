@@ -3,6 +3,7 @@ import { React, useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 import { useProfile } from '../../contexts/ProfileContext';
+import { useUser } from '../../hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,6 +23,7 @@ const Home = () => {
     const router = useRouter()
 
     const { profileImage, setProfileImage } = useProfile();
+    const { user } = useUser()
 
     const handleSubmit = () => {
         router.push('/home')
@@ -51,7 +53,7 @@ const Home = () => {
     return (
         <ThemedView style = {styles.container} safe = {true}>
             <View style={styles.top}>
-                <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text>
+                <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, {user.prefs.firstName}</Text>
                 <View style={[styles.topRight, {
                     // paddingVertical: 2,
                     // marginRight: 24,

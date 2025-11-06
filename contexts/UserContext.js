@@ -7,8 +7,15 @@ export const UserContext = createContext()
 export function UserProvider({ children }) {
 
     const [user, setUser] = useState(null)
-    const [pendingEmail, setPendingEmail] = useState(null)
     const [authChecked, setAuthChecked] = useState(false)
+
+    const [pendingEmail, setPendingEmail] = useState(null)
+    const [pendingPassword, setPendingPassword] = useState(null)
+    const [pendingFirstName, setPendingFirstName] = useState(null)
+    const [pendingLastName, setPendingLastName] = useState(null)
+    const [pendingBirthday, setPendingBirthday] = useState(null)
+    const [pendingUsername, setPendingUsername] = useState(null)
+
 
     async function login(email, password) {
         try {
@@ -33,23 +40,82 @@ export function UserProvider({ children }) {
     }
 
     async function registerPassword(password) {
-        if (!pendingEmail) {
-            console.warn("No email set for registration")
-            //throw Error("No email set for registration")
-            return
+        const p = (password || "").trim()
+
+        if (!password || password.length < 8) {
+            throw Error("Password must be at least 8 characters.")
+        }
+        setPendingPassword(p)
+    }
+
+    async function registerName(firstName, lastName) {
+        const f = (firstName || "").trim()
+        const l = (lastName || "").trim()
+
+        if (!f) {
+            throw Error("Please enter your first name.")
+        }
+        if (!l) {
+            throw Error("Please enter your last name.")
+        }
+        setPendingFirstName(f)
+        setPendingLastName(l)
+    }
+
+    async function registerBirthday(birthday) {
+        if (!birthday) {
+            throw Error("Please select your birthday.")
+        }
+        setPendingBirthday(birthday)
+    }
+
+    async function registerUsername(username) {
+        const u = (username || "").trim()
+
+        if (!u) {
+            throw Error("Please enter a username.")
+        }
+        
+        if (
+            !pendingEmail ||
+            !pendingPassword ||
+            !pendingFirstName ||
+            !pendingLastName ||
+            !pendingBirthday
+        ) {
+            throw Error("Please complete all previous steps.")
         }
 
+
         try {
-            await register(pendingEmail, password)
+            await register({
+                email: pendingEmail, 
+                password: pendingPassword,
+                firstName: pendingFirstName,
+                lastName: pendingLastName,
+                birthday: pendingBirthday,
+                username,
+            })
         } catch (error) {
             throw Error(error.message)
         }
     }
 
-    async function register(email, password) {
+    async function register({ email, password, firstName, lastName, birthday, username }) {
         try {
-            await account.create(ID.unique(), email, password)
+            const fullName = `${firstName || ""} ${lastName || ""}`.trim() || undefined
+
+            await account.create(ID.unique(), email, password, fullName)
             await login(email, password)
+            await account.updatePrefs({
+                firstName,
+                lastName,
+                birthday,
+                username,
+            })
+            const updatedUser = await account.get()
+            setUser(updatedUser)
+
         } catch (error) {
             throw Error(error.message)
         }
@@ -76,7 +142,18 @@ export function UserProvider({ children }) {
     }, [])
 
     return (
-        <UserContext.Provider value={{ user, login, register, registerEmail, registerPassword, logout, authChecked }}>
+        <UserContext.Provider value={{ 
+            user, 
+            login, 
+            register, 
+            registerEmail, 
+            registerPassword, 
+            registerName, 
+            registerBirthday, 
+            registerUsername, 
+            logout, 
+            authChecked 
+        }}>
             {children}
         </UserContext.Provider>
     )

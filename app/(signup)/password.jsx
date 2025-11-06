@@ -27,8 +27,7 @@ const Password = () => {
         setError(null)
         try {
             await registerPassword(password)
-            console.log('Current user is:', user)
-            router.push('/profile')
+            router.push('/names')
             console.log('Password:', password)
         } catch (error) {
             setError(error.message)
