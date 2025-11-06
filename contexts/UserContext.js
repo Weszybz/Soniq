@@ -21,6 +21,14 @@ export function UserProvider({ children }) {
     }
 
     function registerEmail(email) {
+        if (!email || email.trim() === "") {
+            throw Error("Please enter an email address.")
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            throw Error("Please enter a valid email address.")
+        }
         setPendingEmail(email)
     }
 

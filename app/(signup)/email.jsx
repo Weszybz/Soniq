@@ -60,20 +60,20 @@ const Email = () => {
                     value={email}
                 />
 
-                <Spacer style={{height: 100}}/>
-
-                <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
-                    By tapping Continue, you are agreeing to our{' '}
-                    <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
-                    <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
-                </Text>
-                <ThemedButton style={{
+                <View style={{
                     position: 'absolute',
-                    top: '54.3%',
-                }} 
-                onPress={handleSubmit}>
-                        <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-                </ThemedButton>
+                    top: '50.4%',
+                    alignItems: 'center'
+                }}>
+                    <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
+                        By tapping Continue, you are agreeing to our{' '}
+                        <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
+                        <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
+                    </Text>
+                    <ThemedButton onPress={handleSubmit}>
+                            <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
+                    </ThemedButton>
+                </View>
 
                 {error && <Text style={styles.error}>{error}</Text>}
             </ThemedView>
