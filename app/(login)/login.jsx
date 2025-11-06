@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeedback, Keyboard, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { Link, useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import ThemedText from '../../components/ThemedText';
 import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
+import ThemedLoader from '../../components/ThemedLoader';
 
 const Login = () => {
     const colorScheme = useColorScheme()
