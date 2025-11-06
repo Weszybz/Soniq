@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeed
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { useUser } from '../../hooks/useUser';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -18,9 +19,20 @@ const Password = () => {
 
     const [password, setPassword] = useState('')
 
-    const handleSubmit = () => {
-        router.push('/names')
-        console.log('Password:', password)
+    const { user, registerPassword } = useUser()
+
+    const [error, setError] = useState(null)
+    
+    const handleSubmit = async () => {
+        setError(null)
+        try {
+            await registerPassword(password)
+            console.log('Current user is:', user)
+            router.push('/profile')
+            console.log('Password:', password)
+        } catch (error) {
+            setError(error.message)
+        }
     }
 
     return (
@@ -61,6 +73,8 @@ const Password = () => {
                 onPress={handleSubmit}>
                         <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
                 </ThemedButton>
+
+                {error && <Text style={styles.error}>{error}</Text>}
             </ThemedView>
         </TouchableWithoutFeedback>
     )
@@ -93,5 +107,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         width: '75%',
         textAlign: 'center'
+    },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
     },
 })

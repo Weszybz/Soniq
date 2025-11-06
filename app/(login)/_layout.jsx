@@ -2,11 +2,16 @@ import { Stack } from "expo-router"
 import { StatusBar, useColorScheme, Pressable, Text } from "react-native"
 import { Colors } from "../../constants/Colors"
 import { useRouter } from "expo-router"
+import { useUser } from "../../hooks/useUser"
 
 export default function LogInLayout() {
     const colorScheme = useColorScheme()
     const theme = Colors[colorScheme] ?? Colors.light
     const router = useRouter()
+
+
+    const user = useUser()
+    console.log(user)
   return (
     <>
       <StatusBar style="auto" />

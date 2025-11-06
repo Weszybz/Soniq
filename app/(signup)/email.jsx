@@ -9,6 +9,7 @@ import ThemedText from '../../components/ThemedText';
 import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
+import { useUser } from '../../hooks/useUser';
 
 const Email = () => {
     const colorScheme = useColorScheme()
@@ -17,10 +18,20 @@ const Email = () => {
     const router = useRouter()
 
     const [email, setEmail] = useState('')
+
+    const { user, registerEmail } = useUser()
+
+    const [error, setError] = useState(null)
     
-    const handleSubmit = () => {
-        router.push('/password')
-        console.log('Email:', email)
+    const handleSubmit = async () => {
+        try {
+            await registerEmail(email)
+            // console.log('Current user is:', user)
+            router.push('/password')
+            console.log('Email:', email)
+        } catch (error) {
+            setError(error.message)
+        }
     }
 
     return (
@@ -63,6 +74,8 @@ const Email = () => {
                 onPress={handleSubmit}>
                         <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
                 </ThemedButton>
+
+                {error && <Text style={styles.error}>{error}</Text>}
             </ThemedView>
         </TouchableWithoutFeedback>
     )
@@ -95,5 +108,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         width: '65%',
         textAlign: 'center'
+    },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
     },
 })

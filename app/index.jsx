@@ -24,6 +24,7 @@ const Index = () => {
     <ThemedView style ={styles.container} safe = {true}>
       <ThemedText>Index</ThemedText>
       <Spacer />
+      <Link href="/profile" style={[styles.link, {color: theme.textPrimary}]}>Profile</Link>
       <View style={{
           position: 'absolute',
           bottom: '15%',

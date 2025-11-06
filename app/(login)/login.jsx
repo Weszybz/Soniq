@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeed
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { Link, useRouter } from 'expo-router';
+import { useUser } from '../../hooks/useUser';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -18,9 +19,20 @@ const Login = () => {
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState(null)
     
-    const handleSubmit = () => {
-        router.push('/')
+    const { user, login } = useUser()
+    
+    const handleSubmit = async () => {
+        setError(null)
+        try {
+            await login(email, password)
+            console.log('Current user is:', user)
+            router.push('/profile')
+        } catch (error) {
+            setError(error.message)
+        }
+        // console.log('Current User:', user)
         console.log('Log In:', email, password)
     }
 
@@ -60,6 +72,7 @@ const Login = () => {
                 <View style={{
                     position: 'absolute',
                     top: '53.4%',
+                    alignItems: 'center',
                 }}>
                     <ThemedButton onPress={handleSubmit}>
                         <ThemedText style = {styles.buttonText}>Log in</ThemedText>
@@ -69,6 +82,10 @@ const Login = () => {
                         <ThemedText>Don't have an account? {''}</ThemedText>
                         <Link href="/email" style={[styles.link, {color: theme.textPrimary}]}>Sign Up</Link>
                     </View>
+
+                    <Spacer />
+ 
+                    {error && <Text style={styles.error}>{error}</Text>}
                 </View>
             </ThemedView>
         </TouchableWithoutFeedback>
@@ -108,5 +125,14 @@ const styles = StyleSheet.create({
       fontStyle: 'normal',
       fontWeight: '500',
       fontSize: 18
+    },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
     },
 })
