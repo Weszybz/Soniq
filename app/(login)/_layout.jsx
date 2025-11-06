@@ -3,6 +3,7 @@ import { StatusBar, useColorScheme, Pressable, Text } from "react-native"
 import { Colors } from "../../constants/Colors"
 import { useRouter } from "expo-router"
 import { useUser } from "../../hooks/useUser"
+import GuestOnly from "../../components/auth/GuestOnly"
 
 export default function LogInLayout() {
     const colorScheme = useColorScheme()
@@ -14,12 +15,14 @@ export default function LogInLayout() {
     console.log(user)
   return (
     <>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ 
-        headerShown: false, animation: "none",
-        headerStyle: { backgroundColor: theme.navBackground },
-        headerTintColor: theme.title,
-      }} />
+      <GuestOnly>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ 
+          headerShown: false, animation: "none",
+          headerStyle: { backgroundColor: theme.navBackground },
+          headerTintColor: theme.title,
+        }} />
+      </GuestOnly>
     </>
   )
 }

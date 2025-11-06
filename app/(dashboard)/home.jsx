@@ -57,19 +57,21 @@ const Home = () => {
                     // marginRight: 24,
                 }]}>
                     <Ionicons name="notifications-outline" size={40} color={theme.textSecondary} style={{ marginRight: 0 }} />
-                    <Image
-                        source={
-                            profileImage
-                            ? { uri: profileImage }
-                            : require('../../assets/icon.png') // fallback / default
-                        }
-                        style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            alignSelf: 'flex-end'
-                        }}
-                    />
+                    <Pressable onPress={() => router.push('/profile')}>
+                        <Image
+                            source={
+                                profileImage
+                                ? { uri: profileImage }
+                                : require('../../assets/icon.png') // fallback / default
+                            }
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 20,
+                                alignSelf: 'flex-end'
+                            }}
+                        />
+                    </Pressable>
                 </View>
             </View>
             <Spacer />
