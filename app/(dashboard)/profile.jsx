@@ -39,6 +39,8 @@ const Profile = () => {
     <ThemedView style={styles.container} safe={true}>
       <Text>Profile</Text>
 
+      <ThemedText title={true}>{user.email}</ThemedText>
+
       <View style={{
           position: 'absolute',
           bottom: '15%',
@@ -58,6 +60,6 @@ const styles = StyleSheet.create({
   container: {
         flex: 1,
         alignItems: 'center',
-        // justifyContent: 'center',
+        justifyContent: 'center',
     },
 })

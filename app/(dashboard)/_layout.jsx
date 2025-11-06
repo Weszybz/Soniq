@@ -3,6 +3,7 @@ import { StatusBar, useColorScheme, Pressable, Text } from "react-native"
 import { Colors } from "../../constants/Colors"
 import { useRouter } from "expo-router"
 import ThemedNavBar from '../../components/ThemedNavBar';
+import UserOnly from "../../components/auth/UserOnly";
 
 export default function AuthLayout() {
     const colorScheme = useColorScheme()
@@ -10,13 +11,15 @@ export default function AuthLayout() {
     const router = useRouter()
   return (
     <>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ 
-        headerShown: false, animation: "none",
-        headerStyle: { backgroundColor: theme.navBackground },
-        headerTintColor: theme.title,
-      }} />
-      <ThemedNavBar />
+      <UserOnly>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ 
+          headerShown: false, animation: "none",
+          headerStyle: { backgroundColor: theme.navBackground },
+          headerTintColor: theme.title,
+        }} />
+        <ThemedNavBar />
+      </UserOnly>
     </>
   )
 }
