@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, useColorScheme, Pressable, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from '../../constants/Colors';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -57,13 +57,19 @@ const Login = () => {
                     onChangeText={setPassword}
                     value={password}
                 />
-                <ThemedButton style={{
+                <View style={{
                     position: 'absolute',
-                    top: '61.8%',
-                }} 
-                onPress={handleSubmit}>
-                        <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
-                </ThemedButton>
+                    top: '53.4%',
+                }}>
+                    <ThemedButton onPress={handleSubmit}>
+                        <ThemedText style = {styles.buttonText}>Log in</ThemedText>
+                    </ThemedButton>
+
+                    <View style={{ flexDirection: 'row' }}>
+                        <ThemedText>Don't have an account? {''}</ThemedText>
+                        <Link href="/email" style={[styles.link, {color: theme.textPrimary}]}>Sign Up</Link>
+                    </View>
+                </View>
             </ThemedView>
         </TouchableWithoutFeedback>
     )
@@ -96,5 +102,11 @@ const styles = StyleSheet.create({
         fontSize: 14,
         width: '65%',
         textAlign: 'center'
+    },
+    link: {
+      fontFamily: 'inter',
+      fontStyle: 'normal',
+      fontWeight: '500',
+      fontSize: 18
     },
 })

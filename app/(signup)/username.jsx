@@ -56,7 +56,7 @@ const Username = () => {
                 
                 <ThemedButton style={{
                     position: 'absolute',
-                    top: '61.8%',
+                    top: '54.3%',
                 }} 
                 onPress={handleSubmit}>
                         <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>

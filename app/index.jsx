@@ -17,17 +17,27 @@ const Index = () => {
 
     const handleSubmit = () => {
         console.log('login form submitted')
-        router.push('/login')
+        router.push('/email')
 
     }
   return (
     <ThemedView style ={styles.container} safe = {true}>
       <ThemedText>Index</ThemedText>
       <Spacer />
-      <ThemedButton onPress={handleSubmit}>
-        <ThemedText style = {styles.buttonText}>Login</ThemedText>
-      </ThemedButton>
-      <Link href="/email">Sign Up</Link>
+      <View style={{
+          position: 'absolute',
+          bottom: '15%',
+          alignItems: 'center',
+      }}>
+          <ThemedButton style={{ paddingHorizontal: 32}} onPress={handleSubmit}>
+              <ThemedText style = {styles.buttonText}>Create an account</ThemedText>
+          </ThemedButton>
+
+          <View style={{ flexDirection: 'row' }}>
+              {/* <ThemedText>Don't have an account? {''}</ThemedText> */}
+              <Link href="/login" style={[styles.link, {color: theme.textPrimary}]}>Sign In</Link>
+          </View>
+      </View>
     </ThemedView>
   )
 }
@@ -36,14 +46,20 @@ export default Index
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     buttonText: {
-        fontFamily: 'inter',
-        fontStyle: 'normal',
-        fontWeight: 'bold',
-        fontSize: 20
-    }
+      fontFamily: 'inter',
+      fontStyle: 'normal',
+      fontWeight: 'bold',
+      fontSize: 20
+    },
+    link: {
+      fontFamily: 'inter',
+      fontStyle: 'normal',
+      fontWeight: '600',
+      fontSize: 18
+    },
 })

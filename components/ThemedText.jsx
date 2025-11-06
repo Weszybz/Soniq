@@ -9,7 +9,13 @@ const ThemedText = ({ style, title = false, ...props }) => {
 
   return (
     <Text 
-      style={[{ color: textColor }, style]}
+      style={[{ 
+        color: textColor,
+        fontFamily: 'inter',
+        fontStyle: 'normal',
+        fontWeight: '500',
+        fontSize: 18
+       }, style]}
       {...props}
     />
   )
