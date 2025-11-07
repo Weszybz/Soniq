@@ -32,13 +32,13 @@ export function UserProvider({ children }) {
             const response = await account.get()
             setUser(response)
 
-            // const url = response.prefs?.profileImage || null
-            // if (url) {
-            //     // const url = makeProfileImageUrl(fileId)
-            //     setProfileImage(url)
-            // } else {
-            //     setProfileImage(null)
-            // }
+            const url = response.prefs?.profileImage || null
+            if (url) {
+                // const url = makeProfileImageUrl(fileId)
+                setProfileImage(url)
+            } else {
+                setProfileImage(null)
+            }
         
         } catch (error) {
             throw Error(error.message)
@@ -151,6 +151,7 @@ export function UserProvider({ children }) {
     async function logout() {
         await account.deleteSession("current")
         setUser(null)
+        setProfileImage(null)
     }
 
     async function getInitialUserValue() {
