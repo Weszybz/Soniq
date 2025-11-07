@@ -107,9 +107,12 @@ const Profile = () => {
       const url = makeProfileImageUrl(fileId)
 
       // 2️⃣ Save fileId in user prefs
-      await account.updatePrefs({
+      const current = await account.get()
+      const newPrefs = {
+        ...current.prefs,
         profileImage: url,
-      })
+      }
+      await account.updatePrefs(newPrefs)
 
       // 4️⃣ Store globally so it shows in UI & after login
       setProfileImage(url)

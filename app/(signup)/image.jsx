@@ -24,10 +24,20 @@ const Images = () => {
 
     const { profileImage, setProfileImage } = useProfile();
 
-    const { user } = useUser()
+    const { user, pendingEmail, registerImage } = useUser()
 
-    const handleSubmit = () => {
-        router.push('/home')
+    console.log("Pending Email:", pendingEmail)
+
+    const [error, setError] = useState(null)
+
+    const handleSubmit = async () => {
+        try {
+            await registerImage(profileImage)
+            router.push('/')
+            console.log('Profile Image URL:', profileImage)
+        } catch (error) {
+            setError(error.message)
+        }
     }
 
     function makeProfileImageUrl(fileId) {
@@ -38,65 +48,74 @@ const Images = () => {
 
     // 📸 Open system image picker
     const pickImage = async () => {
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
         if (!permissionResult.granted) {
-            alert('Permission to access gallery is required!');
-            return;
+        alert('Permission to access gallery is required!');
+        return;
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.9,
-        });
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.9,
+        })
 
-        if (!result.canceled) {
-            setProfileImage(result.assets[0].uri); // saves globally
-        }
+        if (result.canceled) return
 
         const asset = result.assets[0]
 
-        try {
+        // Infer mime type and extension safely
+        const mimeType = asset.mimeType || 'image/png'
 
-            const response = await fetch(asset.uri)
-            const blob = await response.blob()
-
-            const file = new File([blob], `profile-${user.pref?.username}${Date.now()}.jpg`, {
-                type: blob.type || 'image/jpeg',
-            })
-
-            console.log("Uploading from:", asset.uri)
-
-            const uploaded = await storage.createFile(
-                PROFILE_BUCKET_ID,
-                ID.unique(),
-                file,
-            )
-
-            if (!uploaded || !uploaded.$id) {
-                throw new Error('Upload failed — no file returned.')
-            }
-
-            console.log("Upload result:", uploaded)
-            
-
-            const fileId = uploaded.$id
-
-            await account.updatePrefs({
-                profileImage: fileId,
-            })
-
-            const preview = storage.getFilePreview(PROFILE_BUCKET_ID, fileId)
-            const previewUrl = preview.href ?? preview
-
-            setProfileImage(previewUrl)
-        } catch (error) {
-            console.log('Error uploading profile image:', error)
-            alert('Could not upload image. Please try again.')
+        // Try to get extension from fileName or uri
+        let extension = 'png'
+        if (asset.fileName && asset.fileName.includes('.')) {
+        extension = asset.fileName.split('.').pop()
+        } else if (asset.uri && asset.uri.includes('.')) {
+        extension = asset.uri.split('.').pop().split('?')[0]
         }
-    };
 
+        const filename =
+        // asset.fileName || `profile-${user.pref?.username}-${Date.now()}.${extension}`
+        `${pendingEmail}-${Date.now()}.${extension}`
+        
+
+        const file = {
+        name: filename,
+        type: mimeType,               // <- can be image/png or image/jpeg etc.
+        size: asset.fileSize ?? 0,
+        uri: asset.uri,
+        }
+
+        try {
+        // 1️⃣ Upload to Appwrite Storage
+        const uploaded = await storage.createFile(
+            PROFILE_BUCKET_ID,
+            ID.unique(),
+            file
+        )
+
+        if (!uploaded || !uploaded.$id) {
+            throw new Error('Upload failed — no file returned from Appwrite.')
+        }
+
+        const fileId = uploaded.$id
+        const url = makeProfileImageUrl(fileId)
+
+        // // 2️⃣ Save fileId in user prefs
+        // await account.updatePrefs({
+        //     profileImage: url,
+        // })
+
+        // 4️⃣ Store globally so it shows in UI & after login
+        setProfileImage(url)
+        // setProfileImage('https://picsum.photos/200')
+        } catch (error) {
+        console.log('Error uploading profile image:', error)
+        alert('Failed to upload image. Please try again.')
+        }
+    }
 
     return (
         <ThemedView style = {styles.container} safe = {true}>

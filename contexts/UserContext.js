@@ -19,6 +19,7 @@ export function UserProvider({ children }) {
     const [pendingLastName, setPendingLastName] = useState(null)
     const [pendingBirthday, setPendingBirthday] = useState(null)
     const [pendingUsername, setPendingUsername] = useState(null)
+    const [pendingProfileImage, setPendingProfileImage] = useState(null)
 
     function makeProfileImageUrl(fileId) {
         return `${APPWRITE_ENDPOINT}/storage/buckets/${PROFILE_BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`
@@ -27,17 +28,17 @@ export function UserProvider({ children }) {
 
     async function login(email, password) {
         try {
-            await account.createEmailSession(email, password)
+            await account.createEmailPasswordSession(email, password)
             const response = await account.get()
             setUser(response)
 
-            const url = response.prefs?.profileImage || null
-            if (url) {
-                // const url = makeProfileImageUrl(fileId)
-                setProfileImage(url)
-            } else {
-                setProfileImage(null)
-            }
+            // const url = response.prefs?.profileImage || null
+            // if (url) {
+            //     // const url = makeProfileImageUrl(fileId)
+            //     setProfileImage(url)
+            // } else {
+            //     setProfileImage(null)
+            // }
         
         } catch (error) {
             throw Error(error.message)
@@ -95,41 +96,20 @@ export function UserProvider({ children }) {
         setPendingUsername(u)
     }
 
-    async function uploadProfileImage() {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-        })
-
-        if (result.canceled) return
-
-        const image = result.assets[0]
-        const file = {
-            uri: image.uri,
-            type: "image/jpeg",
-            name: `profile-${Date.now()}.jpg`,
-        }
-
-        try {
-            const responseImages = await storage.createFile("user-profile-images", ID.unique(), file)
-            return responseImages.$id  // return the file ID
-        } catch (error) {
-            console.log("Upload error:", error.message)
-            return null
-        }
+    async function registerImage(profileImageUrl) {
+        const url = profileImageUrl || null
+        setPendingProfileImage(url)
 
         if (
             !pendingEmail ||
             !pendingPassword ||
             !pendingFirstName ||
             !pendingLastName ||
-            !pendingBirthday
+            !pendingBirthday ||
+            !pendingUsername
         ) {
             throw Error("Please complete all previous steps.")
         }
-
 
         try {
             await register({
@@ -138,14 +118,15 @@ export function UserProvider({ children }) {
                 firstName: pendingFirstName,
                 lastName: pendingLastName,
                 birthday: pendingBirthday,
-                username,
+                username: pendingUsername,
+                profileImage: url,
             })
         } catch (error) {
             throw Error(error.message)
         }
     }
 
-    async function register({ email, password, firstName, lastName, birthday, username }) {
+    async function register({ email, password, firstName, lastName, birthday, username, profileImage }) {
         try {
             const fullName = `${firstName || ""} ${lastName || ""}`.trim() || undefined
 
@@ -156,9 +137,11 @@ export function UserProvider({ children }) {
                 lastName,
                 birthday,
                 username,
+                profileImage,
             })
             const updatedUser = await account.get()
             setUser(updatedUser)
+            setProfileImage(profileImage || null)
 
         } catch (error) {
             throw Error(error.message)
@@ -211,8 +194,10 @@ export function UserProvider({ children }) {
             registerName, 
             registerBirthday, 
             registerUsername, 
+            registerImage,
             logout, 
-            authChecked 
+            authChecked,
+            pendingEmail,
         }}>
             {children}
         </UserContext.Provider>
