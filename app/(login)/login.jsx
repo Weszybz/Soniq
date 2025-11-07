@@ -41,7 +41,7 @@ const Login = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView style = {styles.container} safe = {true}>
                 <Pressable 
-                    onPress={() => router.back()}
+                    onPress={() => router.push("/")}
                     style={{
                         position: 'absolute',
                         top: 50,          // adjust for status bar / safe area

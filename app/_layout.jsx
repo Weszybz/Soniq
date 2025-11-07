@@ -11,8 +11,8 @@ const RootLayout = () => {
   const theme = Colors[colorScheme] ?? Colors.light
 
   return (
-    <UserProvider>
-      <ProfileProvider>
+    <ProfileProvider>
+      <UserProvider>
         <StatusBar value="auto" />
         <Stack screenOptions={{
           headerStyle: { backgroundColor: theme.navBackground },
@@ -26,9 +26,8 @@ const RootLayout = () => {
           <Stack.Screen name ="(login)" options={{ headerShown: false }}/>
           <Stack.Screen name ="(signup)/email" options={{ headerShown: true }}/>
         </Stack>
-
-      </ProfileProvider>
-    </UserProvider>
+      </UserProvider>
+    </ProfileProvider>
   );
 }
 

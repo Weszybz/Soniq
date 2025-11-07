@@ -1,6 +1,8 @@
 import { createContext, useEffect, useState } from "react";
-import { account } from "../lib/appwrite"
 import { ID } from "react-native-appwrite";
+import { account, storage, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from "../lib/appwrite"
+import * as ImagePicker from "expo-image-picker"
+import { useProfile } from "./ProfileContext";
 
 export const UserContext = createContext()
 
@@ -9,6 +11,8 @@ export function UserProvider({ children }) {
     const [user, setUser] = useState(null)
     const [authChecked, setAuthChecked] = useState(false)
 
+    const { profileImage, setProfileImage } = useProfile();
+
     const [pendingEmail, setPendingEmail] = useState(null)
     const [pendingPassword, setPendingPassword] = useState(null)
     const [pendingFirstName, setPendingFirstName] = useState(null)
@@ -16,12 +20,25 @@ export function UserProvider({ children }) {
     const [pendingBirthday, setPendingBirthday] = useState(null)
     const [pendingUsername, setPendingUsername] = useState(null)
 
+    function makeProfileImageUrl(fileId) {
+        return `${APPWRITE_ENDPOINT}/storage/buckets/${PROFILE_BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`
+    }
+
 
     async function login(email, password) {
         try {
-            await account.createEmailPasswordSession(email, password)
+            await account.createEmailSession(email, password)
             const response = await account.get()
             setUser(response)
+
+            const url = response.prefs?.profileImage || null
+            if (url) {
+                // const url = makeProfileImageUrl(fileId)
+                setProfileImage(url)
+            } else {
+                setProfileImage(null)
+            }
+        
         } catch (error) {
             throw Error(error.message)
         }
@@ -75,7 +92,34 @@ export function UserProvider({ children }) {
         if (!u) {
             throw Error("Please enter a username.")
         }
-        
+        setPendingUsername(u)
+    }
+
+    async function uploadProfileImage() {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        })
+
+        if (result.canceled) return
+
+        const image = result.assets[0]
+        const file = {
+            uri: image.uri,
+            type: "image/jpeg",
+            name: `profile-${Date.now()}.jpg`,
+        }
+
+        try {
+            const responseImages = await storage.createFile("user-profile-images", ID.unique(), file)
+            return responseImages.$id  // return the file ID
+        } catch (error) {
+            console.log("Upload error:", error.message)
+            return null
+        }
+
         if (
             !pendingEmail ||
             !pendingPassword ||
@@ -139,6 +183,22 @@ export function UserProvider({ children }) {
 
     useEffect(() => {
         getInitialUserValue()
+
+        const init = async () => {
+        try {
+            const current = await account.get()
+            setUser(current)
+
+            const url = current.prefs?.profileImage || null
+            setProfileImage(url)       // ⬅️ hydrate profile image from prefs
+        } catch (err) {
+            // not logged in / no session
+            setUser(null)
+            setProfileImage(null)
+        }
+        }
+
+        init()
     }, [])
 
     return (
