@@ -33,7 +33,6 @@ const Images = () => {
     const handleSubmit = async () => {
         try {
             await registerImage(profileImage)
-            router.push('/')
             console.log('Profile Image URL:', profileImage)
         } catch (error) {
             setError(error.message)
@@ -166,6 +165,8 @@ const Images = () => {
             onPress={handleSubmit}>
                     <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
             </ThemedButton>
+
+            {error && <Text style={styles.error}>{error}</Text>}
         </ThemedView>
     )
 }
@@ -197,5 +198,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         width: '75%',
         textAlign: 'center'
+    },
+    error: {
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: '#f5c1c8',
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        marginHorizontal: 10,
     },
 })

@@ -21,7 +21,7 @@ const ThemedNavBar = ({ style, ...props }) => {
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.navBackground, borderTopColor: theme.border },
+        { backgroundColor: theme.navBackground, borderWidth: 2 ,borderBlockColor: theme.divider },
         style,
       ]}
       {...props}

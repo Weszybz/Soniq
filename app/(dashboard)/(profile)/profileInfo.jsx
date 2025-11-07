@@ -1,24 +1,24 @@
 import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput } from 'react-native'
-import { Colors } from '../../constants/Colors';
-import { useUser } from '../../hooks/useUser';
+import { Colors } from '../../../constants/Colors';
+import { useUser } from '../../../hooks/useUser';
 import { useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 
-import { useProfile } from '../../contexts/ProfileContext';
+import { useProfile } from '../../../contexts/ProfileContext';
 import * as ImagePicker from 'expo-image-picker';
-import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID} from '../../lib/appwrite'
+import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID} from '../../../lib/appwrite'
 
 
 // themed components
-import ThemedView from '../../components/ThemedView';
-import ThemedText from '../../components/ThemedText';
-import Spacer from '../../components/Spacer';
-import ThemedButton from '../../components/ThemedButton';
-import ThemedTextInput from '../../components/ThemedTextInput';
+import ThemedView from '../../../components/ThemedView';
+import ThemedText from '../../../components/ThemedText';
+import Spacer from '../../../components/Spacer';
+import ThemedButton from '../../../components/ThemedButton';
+import ThemedTextInput from '../../../components/ThemedTextInput';
 
-const profileIcon = require('../../assets/icon.png');
+const profileIcon = require('../../../assets/icon.png');
 
-const Profile = () => {
+const ProfileInfo = () => {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
@@ -125,6 +125,19 @@ const Profile = () => {
   
   return (
     <ThemedView style={styles.container} safe={true}>
+      <Pressable 
+        onPress={() => router.push('/profile')}
+        style={{
+            position: 'absolute',
+            top: 50,          // adjust for status bar / safe area
+            left: 20,
+            zIndex: 10,       // keep it above page content
+            padding: 8,
+        }}
+      >
+          <Text style={{ fontSize: 40, color: theme.textPrimary }}>←</Text>
+      </Pressable>
+
       <Text>Profile</Text>
 
       {/* 👇 Image picker */}
@@ -133,7 +146,7 @@ const Profile = () => {
               source={
                   profileImage
                   ? { uri: profileImage }
-                  : require('../../assets/icon.png') // fallback / default
+                  : require('../../../assets/icon.png') // fallback / default
               }
               style={{
                   width: 120,
@@ -161,7 +174,7 @@ const Profile = () => {
   )
 }
 
-export default Profile
+export default ProfileInfo
 
 const styles = StyleSheet.create({
   container: {

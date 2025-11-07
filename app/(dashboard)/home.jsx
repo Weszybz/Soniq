@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import { React, useState } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
@@ -51,115 +51,117 @@ const Home = () => {
 
 
     return (
-        <ThemedView style = {styles.container} safe = {true}>
-            <View style={styles.top}>
-                <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, {user.prefs.firstName}</Text>
-                <View style={[styles.topRight, {
-                    // paddingVertical: 2,
-                    // marginRight: 24,
-                }]}>
-                    <Ionicons name="notifications-outline" size={40} color={theme.textSecondary} style={{ marginRight: 0 }} />
-                    <Pressable onPress={() => router.push('/profile')}>
-                        <Image
-                            source={
-                                profileImage
-                                ? { uri: profileImage }
-                                : require('../../assets/icon.png') // fallback / default
-                            }
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 20,
-                                alignSelf: 'flex-end'
-                            }}
-                        />
-                    </Pressable>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>  
+            <ThemedView style = {styles.container} safe = {true}>
+                <View style={styles.top}>
+                    <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, {user.prefs.firstName}</Text>
+                    <View style={[styles.topRight, {
+                        // paddingVertical: 2,
+                        // marginRight: 24,
+                    }]}>
+                        <Ionicons name="notifications-outline" size={40} color={theme.textSecondary} style={{ marginRight: 0 }} />
+                        <Pressable onPress={() => router.push('/profile')}>
+                            <Image
+                                source={
+                                    profileImage
+                                    ? { uri: profileImage }
+                                    : require('../../assets/icon.png') // fallback / default
+                                }
+                                style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                    alignSelf: 'flex-end'
+                                }}
+                            />
+                        </Pressable>
+                    </View>
                 </View>
-            </View>
-            <Spacer />
-            <View style={[styles.search, 
-            {
-              backgroundColor: theme.uiBackground, 
-              width: '90%',
-              paddingVertical: 2,
-              paddingHorizontal: 16,
-              borderRadius: 20,
-            }]}>
-              <Ionicons name="search" size={24} color={theme.textSecondary} style={{ marginRight: 8 }} />
-              <TextInput
-                  placeholder="Search"
-                  keyboardType="default"
-                  style={{
-                    color: theme.textSecondary,
-                    width: '90%',
-                    fontFamily: 'inter',
-                    fontWeight: '600',
-                    paddingVertical: 12,
-                    fontSize: 18,
-                }}/>
-            </View>
-            <Spacer />
-            <View style={[ styles.card,
-            { 
-                backgroundColor: theme.cardBackground,
-            }]}>
-                <View style={styles.cardTop}>
-                    <View style={styles.profileUsernameGenre}>
-                        <Image
-                            source={
-                                profileImage
-                                ? { uri: profileImage }
-                                : require('../../assets/icon.png') // fallback / default
-                            }
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 20,
-                            }}
-                        />
-                        <View style={styles.userGenre}>
-                            <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
-                            <View style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 4,
-                            }}>
-                                <View style ={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#06B6D4',
-                                }} />
-                                <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
+                <Spacer />
+                <View style={[styles.search, 
+                {
+                backgroundColor: theme.uiBackground, 
+                width: '90%',
+                paddingVertical: 2,
+                paddingHorizontal: 16,
+                borderRadius: 20,
+                }]}>
+                <Ionicons name="search" size={24} color={theme.textSecondary} style={{ marginRight: 8 }} />
+                <TextInput
+                    placeholder="Search"
+                    keyboardType="default"
+                    style={{
+                        color: theme.textSecondary,
+                        width: '90%',
+                        fontFamily: 'inter',
+                        fontWeight: '600',
+                        paddingVertical: 12,
+                        fontSize: 18,
+                    }}/>
+                </View>
+                <Spacer />
+                <View style={[ styles.card,
+                { 
+                    backgroundColor: theme.cardBackground,
+                }]}>
+                    <View style={styles.cardTop}>
+                        <View style={styles.profileUsernameGenre}>
+                            <Image
+                                source={
+                                    profileImage
+                                    ? { uri: profileImage }
+                                    : require('../../assets/icon.png') // fallback / default
+                                }
+                                style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 20,
+                                }}
+                            />
+                            <View style={styles.userGenre}>
+                                <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
+                                <View style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                }}>
+                                    <View style ={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: 4,
+                                        backgroundColor: '#06B6D4',
+                                    }} />
+                                    <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                    <View style={[styles.cardTopRight, {
+                        <View style={[styles.cardTopRight, {
 
-                    }]}>
-                        <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-                        {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                        }]}>
+                            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                            {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                        </View>
+                    </View>
+                    <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
+                    <View style={styles.waveform}></View>
+                    <View style={styles.reactions}>
+                        <View style={styles.likes}>
+                            <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
+                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
+                        </View>
+                        <View style={styles.reactionsItem}>
+                            <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
+                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>17</Text>
+                        </View>
+                        <View style={styles.reactionsItem}>
+                            <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
+                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
+                        </View>
                     </View>
                 </View>
-                <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
-                <View style={styles.waveform}></View>
-                <View style={styles.reactions}>
-                    <View style={styles.likes}>
-                        <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
-                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
-                    </View>
-                    <View style={styles.reactionsItem}>
-                        <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>17</Text>
-                    </View>
-                    <View style={styles.reactionsItem}>
-                        <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
-                    </View>
-                </View>
-            </View>
 
-        </ThemedView>
+            </ThemedView>
+        </TouchableWithoutFeedback>
     )
 }
 

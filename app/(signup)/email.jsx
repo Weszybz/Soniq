@@ -62,7 +62,7 @@ const Email = () => {
 
                 <View style={{
                     position: 'absolute',
-                    top: '50.4%',
+                    top: '54.95%',
                     alignItems: 'center'
                 }}>
                     <Text style={[styles.textSecondary, {color: theme.textSecondary}]}>
@@ -70,6 +70,7 @@ const Email = () => {
                         <Text style={{fontWeight: 'bold'}}>Terms of Service</Text> and{' '}
                         <Text style={{fontWeight: 'bold'}}>Privacy Policy</Text>
                     </Text>
+                    <Spacer/>
                     <ThemedButton onPress={handleSubmit}>
                             <ThemedText style = {styles.buttonText}>Continue {'-->'}</ThemedText>
                     </ThemedButton>

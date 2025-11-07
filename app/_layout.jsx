@@ -18,7 +18,7 @@ const RootLayout = () => {
           headerStyle: { backgroundColor: theme.navBackground },
           headerTintColor: theme.title,
         }}>
-          <Stack.Screen name ="index" options={{ title: 'Home'}}/>
+          <Stack.Screen name ="index" options={{ title: 'Home', headerShown: false }}/>
           <Stack.Screen name ="home" options={{ headerShown: false }}/>
           <Stack.Screen name ="email" options={{ title: 'Email', headerShown: false }}/>
           <Stack.Screen name ="(signup)" options={{ headerShown: false }}/>

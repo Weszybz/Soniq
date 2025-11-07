@@ -79,6 +79,8 @@ const Login = () => {
                         <ThemedText style = {styles.buttonText}>Log in</ThemedText>
                     </ThemedButton>
 
+                    <Spacer />
+
                     <View style={{ flexDirection: 'row' }}>
                         <ThemedText>Don't have an account? {''}</ThemedText>
                         <Link href="/email" style={[styles.link, {color: theme.textPrimary}]}>Sign Up</Link>

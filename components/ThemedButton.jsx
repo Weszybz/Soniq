@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 110,
     borderRadius: 30,
-    marginVertical: 16,
+    // marginVertical: 16,
   },
   pressed: {
     opacity: 0.5

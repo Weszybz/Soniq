@@ -22,17 +22,20 @@ const Index = () => {
     }
   return (
     <ThemedView style ={styles.container} safe = {true}>
-      <ThemedText>Index</ThemedText>
+      <ThemedText style={[styles.logoText, { top: '0%'}]}>Soniq</ThemedText>
       <Spacer />
-      <Link href="/profile" style={[styles.link, {color: theme.textPrimary}]}>Profile</Link>
+      <Spacer />
+      {/* <Link href="/profile" style={[styles.link, {color: theme.textPrimary}]}>Profile</Link> */}
       <View style={{
           position: 'absolute',
-          bottom: '15%',
+          bottom: '6%',
           alignItems: 'center',
       }}>
           <ThemedButton style={{ paddingHorizontal: 32}} onPress={handleSubmit}>
               <ThemedText style = {styles.buttonText}>Create an account</ThemedText>
           </ThemedButton>
+
+          <Spacer />
 
           <View style={{ flexDirection: 'row' }}>
               {/* <ThemedText>Don't have an account? {''}</ThemedText> */}
@@ -50,6 +53,13 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    logoText: {
+      fontFamily: 'montserrat',
+      fontStyle: 'normal',
+      fontWeight: '800',
+      fontSize: 48,
+      color: Colors.primary
     },
     buttonText: {
       fontFamily: 'inter',
