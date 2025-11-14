@@ -27,7 +27,8 @@ function ThemedProfileScroller({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={[styles.container, style]}
+      style={style}
+      contentContainerStyle={styles.container}
     >
       {options.map((label, index) => {
         const isSelected = selectedIndex === index
@@ -55,7 +56,7 @@ function ThemedProfileScroller({
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 0,
+    flexDirection: 'row',
     // paddingHorizontal: 10,
   },
   item: {

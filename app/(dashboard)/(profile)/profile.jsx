@@ -197,17 +197,18 @@ const styles = StyleSheet.create({
   },
   imageButton: {
     flexDirection: 'row',
-    width: '85%',
+    width: '100%',
     justifyContent: 'space-between',
-    // alignItems: 'baseline',
+    alignItems: 'baseline',
   },  
   editProfile: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderWidth: 2,
-    position: 'absolute',
-    bottom: '0%',
-    alignSelf: 'center',
+    marginBottom: -24,
+    // position: 'absolute',
+    // bottom: '0%',
+    alignSelf: 'flex-end',
   },
   optionButtonsView: {
     flexDirection: 'row',
