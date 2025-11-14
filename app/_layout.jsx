@@ -5,14 +5,12 @@ import { StatusBar } from 'expo-status-bar';
 import { ProfileProvider } from '../contexts/ProfileContext';
 import ThemedNavBar from '../components/ThemedNavBar';
 import { UserProvider } from '../contexts/UserContext';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const RootLayout = () => {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
     <ProfileProvider>
       <UserProvider>
         <StatusBar value="auto" />
@@ -30,7 +28,6 @@ const RootLayout = () => {
         </Stack>
       </UserProvider>
     </ProfileProvider>
-    </GestureHandlerRootView>
   );
 }
 

@@ -6,6 +6,7 @@ import { useProfile } from '../../contexts/ProfileContext';
 import { useUser } from '../../hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useBottomSheet } from '../../contexts/BottomSheetContext';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -54,12 +55,26 @@ const Home = () => {
         }
     };
 
-    const bottomSheetRef = useRef(null)
-    const handleCardOptions = () => bottomSheetRef.current?.expand()
+    const { bottomSheetRef, setContent } = useBottomSheet();
+    const handleCardOptions = () => {
+        setContent(
+            <View style={{ padding: 20 }}>
+                <Text style={{ fontSize:18, fontWeight:'600', color: theme.textPrimary }}>
+                    Custom Title
+                </Text>
+                <Text style={{ fontSize:14, color: theme.textPrimary }}>
+                    This is some detailed description text inside the sheet.
+                </Text>
+            </View>
+        );
+        bottomSheetRef.current?.expand();
+    }; 
+
+    // const bottomSheetRef = useBottomSheet()
+    // const handleCardOptions = () => bottomSheetRef.current?.expand()
     const handleCardOptionsClose = () => bottomSheetRef.current?.close()
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>  
             <ThemedView style = {styles.container} safe = {true}>
                 <View style={styles.top}>
@@ -168,10 +183,8 @@ const Home = () => {
                         </View>
                     </View>
                 </View>
-                <ThemedBottomSheet ref={bottomSheetRef} />
             </ThemedView>
         </TouchableWithoutFeedback>
-        </GestureHandlerRootView>
     )
 }
 
