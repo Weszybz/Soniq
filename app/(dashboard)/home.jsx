@@ -19,6 +19,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import ThemedBottomSheet from '../../components/ThemedBottomSheet';
 import ThemedWaveform from '../../components/ThemedWaveform';
+import ThemedComments from '../../components/ThemedComments';
 
 
 const profileIcon = require('../../assets/icon.png');
@@ -74,6 +75,9 @@ const Home = () => {
     // const bottomSheetRef = useBottomSheet()
     // const handleCardOptions = () => bottomSheetRef.current?.expand(
     const handleCardOptionsClose = () => bottomSheetRef.current?.close()
+
+    const soundRef = useRef(null);
+    const [position, setPosition] = useState(0);
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>  
@@ -170,8 +174,10 @@ const Home = () => {
                     <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
                     <View style={styles.waveform}>
                         <ThemedWaveform 
-                        audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
-                        theme={theme}
+                            audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
+                            theme={theme}
+                            soundRef={soundRef}
+                            onPositionChange={setPosition}
                         />
                     </View>
                     <View style={styles.reactions}>
@@ -187,6 +193,15 @@ const Home = () => {
                             <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
                             <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
                         </View>
+                    </View>
+                    <View>
+                        <ThemedComments
+                            theme={theme}
+                            soundRef={soundRef}
+                            position={position}
+                            user={user}
+                            profileImage={profileImage}
+                        />
                     </View>
                 </View>
             </ThemedView>

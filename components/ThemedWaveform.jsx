@@ -4,12 +4,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from "react-native-reanimated";
 
-const ThemedWaveform = ({ audioUri, theme }) => {
+const ThemedWaveform = ({ audioUri, theme, soundRef, onPositionChange }) => {
   const [bars] = useState(
     Array.from({ length: 40 }).map(() => 10 + Math.random() * 30)
   );
 
-  const soundRef = useRef(null);
+//   const soundRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -38,6 +38,8 @@ const ThemedWaveform = ({ audioUri, theme }) => {
       setIsPlaying(false);
       setProgress(1);
     }
+
+    if (onPositionChange) onPositionChange(status.positionMillis);
   };
 
   const handlePlayPause = async () => {
