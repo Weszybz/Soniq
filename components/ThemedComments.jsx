@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TextInput, Pressable, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const ThemedComments = ({ theme, soundRef, position, user, profileImage }) => {
+const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCountChange }) => {
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -23,6 +23,8 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage }) => {
   ]);
 
   const [textInput, setTextInput] = useState("");
+  const [replyTo, setReplyTo] = useState(null);
+  const [openThreads, setOpenThreads] = useState({});
 
   const formatTime = (sec) => {
     const m = Math.floor(sec / 60);
@@ -41,11 +43,24 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage }) => {
       time: Math.floor(position / 1000),
       likes: 0,
       likedByCurrentUser: false,
+      replyTo: replyTo ? replyTo.id : null,
     };
 
-    setComments((prev) => [...prev, newComment]);
+    setComments((prev) => {
+      if (!replyTo) return [...prev, newComment];
+      const index = prev.findIndex((c) => c.id === replyTo.id);
+      if (index === -1) return [...prev, newComment];
+      const updated = [...prev];
+      updated.splice(index + 1, 0, newComment);
+      return updated;
+    });
     setTextInput("");
+    setReplyTo(null);
   };
+
+  useEffect(() => {
+    onCountChange?.(comments.length);
+  }, [comments]);
 
   const jumpToTime = async (sec) => {
     if (!soundRef?.current) return;
@@ -70,40 +85,60 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage }) => {
     );
   };
 
+  const toggleThread = (id) => {
+    setOpenThreads((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <View style={styles.container}>
-      {comments.map((c) => (
-        <View key={c.id} style={styles.comment}>
-          <View style={styles.header}>
-            <Image
-              source={
-                c.avatarUrl
-                  ? { uri: c.avatarUrl }
-                  : c.username === (user?.prefs?.username || "You")
-                    ? (profileImage ? { uri: profileImage } : require('../assets/icon.png'))
-                    : require('../assets/icon.png')
-              }
-              style={styles.avatarImage}
-            />
-            <Text style={[styles.username, { color: theme.textPrimary }]}>{c.username}</Text>
-          </View>
-          <Text style={[styles.text, { color: theme.textPrimary }]}>{c.text}</Text>
-          <Pressable onPress={() => jumpToTime(c.time)}>
-            <Text style={[styles.time, { color: '#06B6D4' }]}>
-              @{formatTime(c.time)}
-            </Text>
-          </Pressable>
+      {comments.map((c, index) => {
+        const replyCount = comments.filter((x) => x.replyTo === c.id).length;
+        if (c.replyTo && !openThreads[c.replyTo]) return null;
+        return (
+          <View key={c.id} style={[styles.comment, c.replyTo ? styles.replyIndent : null]}>
+            <View style={styles.header}>
+              <Image
+                source={
+                  c.avatarUrl
+                    ? { uri: c.avatarUrl }
+                    : c.username === (user?.prefs?.username || "You")
+                      ? (profileImage ? { uri: profileImage } : require('../assets/icon.png'))
+                      : require('../assets/icon.png')
+                }
+                style={styles.avatarImage}
+              />
+              <Text style={[styles.username, { color: theme.textPrimary }]}>{c.username}</Text>
+            </View>
+            <Text style={[styles.text, { color: theme.textPrimary }]}>{c.text}</Text>
+            <Pressable onPress={() => jumpToTime(c.time)}>
+              <Text style={[styles.time, { color: '#06B6D4' }]}>
+                @{formatTime(c.time)}
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => setReplyTo({ id: c.id, username: c.username })}>
+              <Text style={[styles.reply, { color: theme.textSecondary }]}>Reply</Text>
+            </Pressable>
 
-          <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
-            <Ionicons name="thumbs-up-outline" size={18} color={theme.textSecondary} />
-            <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
-          </Pressable>
-        </View>
-      ))}
+            <View style={styles.actionRow}>
+              <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
+                <Ionicons name="thumbs-up-outline" size={18} color={theme.textSecondary} />
+                <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
+              </Pressable>
+
+              {replyCount > 0 && (
+                <Pressable style={styles.replyCountBtn} onPress={() => toggleThread(c.id)}>
+                  <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
+                  <Text style={[styles.replyCount, { color: theme.textSecondary }]}>{replyCount}</Text>
+                </Pressable>
+              )}
+            </View>
+          </View>
+        );
+      })}
 
       <View style={styles.inputRow}>
         <TextInput
-          placeholder="Add comment"
+          placeholder={replyTo ? `Reply to ${replyTo.username}` : "Add comment"}
           placeholderTextColor={theme.textPrimary + "80"}
           value={textInput}
           onChangeText={setTextInput}
@@ -181,5 +216,29 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     padding: 6,
+  },
+  reply: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  replyIndent: {
+    marginLeft: 30,
+    borderLeftWidth: 1,
+    borderLeftColor: '#ccc',
+    paddingLeft: 6,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 4,
+  },
+  replyCountBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  replyCount: {
+    fontSize: 12,
   },
 });

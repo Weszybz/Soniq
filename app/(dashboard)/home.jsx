@@ -78,9 +78,11 @@ const Home = () => {
 
     const soundRef = useRef(null);
     const [position, setPosition] = useState(0);
+    const [showComments, setShowComments] = useState(false);
+    const [totalComments, setTotalComments] = useState(0);
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>  
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView style = {styles.container} safe = {true}>
                 <View style={styles.top}>
                     <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, {user.prefs.firstName}</Text>
@@ -185,23 +187,25 @@ const Home = () => {
                             <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
                             <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
                         </View>
-                        <View style={styles.reactionsItem}>
+                        <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
                             <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>17</Text>
-                        </View>
+                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
+                        </Pressable>
                         <View style={styles.reactionsItem}>
                             <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
                             <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
                         </View>
                     </View>
-                    <View>
-                        <ThemedComments
-                            theme={theme}
-                            soundRef={soundRef}
-                            position={position}
-                            user={user}
-                            profileImage={profileImage}
-                        />
+                    <View style={{ display: showComments ? 'flex' : 'none' }}>
+                      <ThemedComments
+                          theme={theme}
+                          soundRef={soundRef}
+                          position={position}
+                          user={user}
+                          profileImage={profileImage}
+                          onCountChange={setTotalComments}
+                          style={{}}
+                      />
                     </View>
                 </View>
             </ThemedView>
