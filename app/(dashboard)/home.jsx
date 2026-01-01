@@ -18,6 +18,7 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import ThemedBottomSheet from '../../components/ThemedBottomSheet';
+import ThemedWaveform from '../../components/ThemedWaveform';
 
 
 const profileIcon = require('../../assets/icon.png');
@@ -71,7 +72,7 @@ const Home = () => {
     }; 
 
     // const bottomSheetRef = useBottomSheet()
-    // const handleCardOptions = () => bottomSheetRef.current?.expand()
+    // const handleCardOptions = () => bottomSheetRef.current?.expand(
     const handleCardOptionsClose = () => bottomSheetRef.current?.close()
 
     return (
@@ -167,7 +168,12 @@ const Home = () => {
                         </View>
                     </View>
                     <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
-                    <View style={styles.waveform}></View>
+                    <View style={styles.waveform}>
+                        <ThemedWaveform 
+                        audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
+                        theme={theme}
+                        />
+                    </View>
                     <View style={styles.reactions}>
                         <View style={styles.likes}>
                             <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
