@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from "react-native-reanimated";
 
 const ThemedWaveform = ({ audioUri, theme }) => {
   const [bars] = useState(
@@ -94,6 +95,26 @@ const ThemedWaveform = ({ audioUri, theme }) => {
 
   const activeBarsCount = Math.round(progress * bars.length);
 
+  const getAnimatedStyles = (isActive, h) => {
+    const opacity = useSharedValue(isActive ? 1 : 0.3);
+    const height = useSharedValue(isActive ? h : h * 0.6);
+
+    useEffect(() => {
+        if (isActive) {
+        opacity.value = withTiming(1, { duration: 160 });
+        height.value = withSpring(h, { damping: 10, stiffness: 120 });
+        } else {
+        opacity.value = withTiming(0.3, { duration: 140 });
+        height.value = withTiming(h * 0.6, { duration: 180 });
+        }
+    }, [isActive]);
+
+    return useAnimatedStyle(() => ({
+        opacity: opacity.value,
+        height: height.value,
+    }));
+  };
+
   return (
     <View style={styles.container}>
       <View
@@ -105,17 +126,17 @@ const ThemedWaveform = ({ audioUri, theme }) => {
         <View style={styles.barRow}>
           {bars.map((h, i) => {
             const isActive = i < activeBarsCount;
+            const animatedStyle = getAnimatedStyles(isActive, h);
             return (
-              <View
+              <Animated.View
                 key={i}
                 style={[
                   styles.bar,
+                  animatedStyle,
                   {
-                    height: h,
                     backgroundColor: isActive
                       ? theme.textPrimary
                       : theme.textSecondary + "40",
-                    opacity: isActive ? 1 : 0.3,
                   },
                 ]}
               />
