@@ -80,6 +80,16 @@ const Home = () => {
     const [position, setPosition] = useState(0);
     const [showComments, setShowComments] = useState(false);
     const [totalComments, setTotalComments] = useState(0);
+    const [postLiked, setPostLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(124);
+
+    const togglePostLike = () => {
+        setPostLiked((prev) => {
+            const next = !prev;
+            setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
+            return next;
+        });
+    };
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -183,10 +193,14 @@ const Home = () => {
                         />
                     </View>
                     <View style={styles.reactions}>
-                        <View style={styles.likes}>
-                            <Ionicons name="thumbs-up-outline" size={28} color={theme.textSecondary} />
-                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>124</Text>
-                        </View>
+                        <Pressable style={styles.likes} onPress={togglePostLike}>
+                            <Ionicons
+                                name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
+                                size={28}
+                                color={postLiked ? "#06B6D4" : theme.textSecondary}
+                            />
+                            <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
+                        </Pressable>
                         <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
                             <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
                             <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>

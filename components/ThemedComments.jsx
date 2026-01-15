@@ -121,7 +121,7 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
 
             <View style={styles.actionRow}>
               <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
-                <Ionicons name="thumbs-up-outline" size={18} color={theme.textSecondary} />
+                <Ionicons name={c.likedByCurrentUser ? "thumbs-up" : "thumbs-up-outline"} size={18} color={c.likedByCurrentUser ? "#06B6D4" : theme.textSecondary}></Ionicons>
                 <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
               </Pressable>
 
