@@ -3,6 +3,8 @@ import { Colors } from '../../constants/Colors';
 import React, { useState } from 'react'
 import { pickAndUploadSnippet } from '../../lib/snippets';
 import { Ionicons } from '@expo/vector-icons'
+import { useUser } from '../../hooks/useUser';
+import { useProfile } from '../../contexts/ProfileContext';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -15,22 +17,44 @@ const Upload = () => {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
-  
+  const { user } = useUser()
+  const { profileImage } = useProfile()
+
   const [title, setTitle] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [lastUploadUrl, setLastUploadUrl] = useState(null)
+  const [genre, setGenre] = useState('')
+  const [titleTouched, setTitleTouched] = useState(false)
+  const [genreTouched, setGenreTouched] = useState(false)
+
+  const titleError = titleTouched && !title.trim() ? 'Title is required' : null
+  const genreError = genreTouched && !genre.trim() ? 'Genre is required' : null
+  const isFormValid = title.trim() && genre.trim()
 
   const handleUpload = async () => {
+    setTitleTouched(true)
+    setGenreTouched(true)
+    
+    if (!isFormValid) return
+
     try {
       setIsUploading(true)
       setLastUploadUrl(null)
 
-      const result = await pickAndUploadSnippet({ titleOverride: title?.trim() || undefined })
+      const result = await pickAndUploadSnippet({ 
+        title: title.trim(),
+        genre: genre.trim(),
+        username: user.prefs?.username || user.name || 'Anonymous',
+        profileImage: profileImage || null
+      })
       if (!result) return // user cancelled
 
       setLastUploadUrl(result.fileUrl)
       Alert.alert('Uploaded!', 'Your snippet has been uploaded successfully.')
       setTitle('')
+      setGenre('')
+      setTitleTouched(false)
+      setGenreTouched(false)
     } catch (e) {
       console.warn(e)
       Alert.alert('Upload failed', e?.message || 'Something went wrong while uploading.')
@@ -49,21 +73,52 @@ const Upload = () => {
       <Spacer height={16} />
 
       <View style={styles.card}>
-        <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Title (optional)</ThemedText>
+        <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Title</ThemedText>
         <ThemedTextInput
           value={title}
           onChangeText={setTitle}
+          onBlur={() => setTitleTouched(true)}
           placeholder='e.g. Hook idea / Chorus take'
           placeholderTextColor={theme.textSecondary + '80'}
-          style={[styles.input, { borderColor: theme.textSecondary + '40', color: theme.textPrimary }]}
+          style={[
+            styles.input, 
+            { 
+              borderColor: titleError ? '#ef4444' : theme.textSecondary + '40', 
+              color: theme.textPrimary 
+            }
+          ]}
         />
+        {titleError && (
+          <ThemedText style={[styles.errorText, {color: theme.textSecondary }]}>{titleError}</ThemedText>
+        )}
+
+        <Spacer height={16} />
+
+        <ThemedText style={[styles.label, { color: theme.textSecondary }]}>Genre</ThemedText>
+        <ThemedTextInput
+          value={genre}
+          onChangeText={setGenre}
+          onBlur={() => setGenreTouched(true)}
+          placeholder='e.g. Hip-Hop, R&B, Pop'
+          placeholderTextColor={theme.textSecondary + '80'}
+          style={[
+            styles.input, 
+            { 
+              borderColor: genreError ? '#ef4444' : theme.textSecondary + '40', 
+              color: theme.textPrimary 
+            }
+          ]}
+        />
+        {genreError && (
+          <ThemedText style={[styles.errorText, {color: theme.textSecondary }]}>{titleError}</ThemedText>
+        )}
 
         <Spacer height={16} />
 
         <Pressable
-          style={[styles.uploadBtn, { backgroundColor: theme.cardBackground || theme.background }]}
+          style={[styles.uploadBtn, { backgroundColor: theme.cardBackground || theme.background }, (!isFormValid || isUploading) && styles.uploadBtnDisabled]}
           onPress={handleUpload}
-          disabled={isUploading}
+          disabled={!isFormValid || isUploading}
         >
           {isUploading ? (
             <ActivityIndicator />
@@ -139,9 +194,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#00000010',
   },
+  uploadBtnDisabled: {
+    opacity: 0.5,
+  },
   uploadText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 12,
+    marginTop: 6,
   },
   success: {
     fontSize: 12,

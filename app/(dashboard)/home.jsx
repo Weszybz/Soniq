@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
-import { React, useMemo, useState, useRef } from 'react'
+import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, ScrollView } from 'react-native'
+import { React, useMemo, useState, useRef, useEffect } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
 import { useProfile } from '../../contexts/ProfileContext';
@@ -7,6 +7,7 @@ import { useUser } from '../../hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
+import { listSnippets } from '../../lib/snippets';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -20,6 +21,7 @@ import { Stack } from 'expo-router';
 import ThemedBottomSheet from '../../components/ThemedBottomSheet';
 import ThemedWaveform from '../../components/ThemedWaveform';
 import ThemedComments from '../../components/ThemedComments';
+import { useSharedValue } from 'react-native-reanimated';
 
 
 const profileIcon = require('../../assets/icon.png');
@@ -83,6 +85,27 @@ const Home = () => {
     const [postLiked, setPostLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(124);
 
+    const [snippets, setSnippets] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchSnippets = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await listSnippets();
+                setSnippets(data);
+            } catch (err) {
+                console.error('Failed to fetch snippets:', err);
+                setError(err?.message || 'Failed to load snippets');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchSnippets();
+    }, [])
+
     const togglePostLike = () => {
         setPostLiked((prev) => {
             const next = !prev;
@@ -141,6 +164,110 @@ const Home = () => {
                     }}/>
                 </View>
                 <Spacer />
+
+                {/* Snippets Feed*/}
+                {loading && (
+                    <View style={[styles.feedState, { width: '90%' }]}>
+                        <ActivityIndicator size="large" color={theme.textSecondary} />
+                        <Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
+                    </View>
+                )}
+
+                {error && (
+                    <View style={[styles.feedState, { width: '90%' }]}>
+                        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+                        <Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
+                    </View>
+                )}
+
+                {!loading && !error && snippets.length === 0 && (
+                    <View style={[styles.feedState, {width: '90%'}]}>
+                        <Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
+                        <Text style={[styles.feedStateText, {color: theme.textSecondary }]}>No snippets yet</Text>
+                        <Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
+                    </View>
+                )}
+
+                {!loading && !error && snippets.map((snippet) => (
+                    <View key={snippet.$id}>
+                        <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
+                            <View style={styles.cardTop}>
+                                <View style={styles.profileUsernameGenre}>
+                                    <Image
+                                        source={
+                                            snippet.profileImage
+                                            ? { uri: snippet.profileImage }
+                                            : require('../../assets/icon.png') // fallback / default
+                                        }
+                                        style={{
+                                            width: 40,
+                                            height: 40,
+                                            borderRadius: 20,
+                                        }}
+                                    />
+                                    <View style={styles.userGenre}>
+                                        <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>
+                                            {snippet.username || 'Anonymous'}
+                                        </Text>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            gap: 4,
+                                        }}>
+                                            <View style ={{
+                                                width: 8,
+                                                height: 8,
+                                                borderRadius: 4,
+                                                backgroundColor: '#06B6D4',
+                                            }} />
+                                            <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>
+                                                {snippet.genre}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                </View>
+                                <View style={[styles.cardTopRight, {}]}>
+                                    <Pressable onPress={handleCardOptions}>
+                                        <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                                        {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                                    </Pressable>
+                                </View>
+                            </View>
+                            <Text style={[styles.title, { color: theme.textPrimary }]}>
+                                {snippet.title}
+                            </Text>
+                            <View style={styles.waveform}>
+                                <ThemedWaveform 
+                                    audioUri={snippet.fileUrl}
+                                    theme={theme}
+                                    soundRef={soundRef}
+                                    onPositionChange={setPosition}
+                                />
+                            </View>
+                            <View style={styles.reactions}>
+                                <Pressable style={styles.likes} onPress={togglePostLike}>
+                                    <Ionicons
+                                        name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
+                                        size={28}
+                                        color={postLiked ? "#06B6D4" : theme.textSecondary}
+                                    />
+                                    <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
+                                </Pressable>
+                                <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
+                                    <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
+                                    <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
+                                </Pressable>
+                                <View style={styles.reactionsItem}>
+                                    <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
+                                    <Text style={[styles.numbers, { color: theme.textPrimary}]}>0</Text>
+                                </View>
+                            </View>
+                        </View>
+                        <Spacer />
+                    </View>
+                ))}
+
+                {/* Original Example Card */}
                 <View style={[ styles.card,
                 { 
                     backgroundColor: theme.cardBackground,
@@ -330,6 +457,24 @@ const styles = StyleSheet.create({
         fontFamily: 'inter',
         fontWeight: '500',
         fontSize: 18
+    },
+    feedState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 64,
+        gap: 12,
+    },
+    feedStateText: {
+        fontFamily: 'inter',
+        fontWeight: '600',
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    feedStateSubtext: {
+        fontFamily: 'inter',
+        fontWeight: '400',
+        fontSize: 14,
+        textAlign: 'center',
     },
 
 })
