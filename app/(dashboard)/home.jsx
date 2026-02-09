@@ -7,7 +7,7 @@ import { useUser } from '../../hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
-import { listSnippets } from '../../lib/snippets';
+import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -80,14 +80,14 @@ const Home = () => {
 
     const soundRef = useRef(null);
     const [position, setPosition] = useState(0);
-    const [showComments, setShowComments] = useState(false);
-    const [totalComments, setTotalComments] = useState(0);
-    const [postLiked, setPostLiked] = useState(false);
-    const [likeCount, setLikeCount] = useState(124);
 
     const [snippets, setSnippets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [likedSnippets, setLikedSnippets] = useState(new Set());
+    const [visibleComments, setVisibleComments] = useState(new Set())
+
 
     useEffect(() => {
         const fetchSnippets = async () => {
@@ -96,6 +96,16 @@ const Home = () => {
                 setError(null);
                 const data = await listSnippets();
                 setSnippets(data);
+
+                // Initialise liked snippets based on current user
+                if (user?.$id) {
+                    const userLikedSnippets = new Set(
+                        data
+                            .filter(snippet => snippet.likedBy?.includes(user.$id))
+                            .map(snippet => snippet.$id)
+                    );
+                    setLikedSnippets(userLikedSnippets)
+                }
             } catch (err) {
                 console.error('Failed to fetch snippets:', err);
                 setError(err?.message || 'Failed to load snippets');
@@ -104,14 +114,130 @@ const Home = () => {
             }
         };
         fetchSnippets();
-    }, [])
+    }, [user?.$id])
 
-    const togglePostLike = () => {
-        setPostLiked((prev) => {
-            const next = !prev;
-            setLikeCount((c) => (next ? c + 1 : Math.max(0, c - 1)));
-            return next;
+    const handleToggleLike = async (snippetId) => {
+        const snippet = snippets.find(s => s.$id === snippetId);
+        if (!snippet) return;
+
+        const isCurrentlyLiked = likedSnippets.has(snippetId)
+        const currentCount = snippet.likes || 0;
+        const currentLikedBy = snippet.likedBy || [];
+
+        setLikedSnippets(prev => {
+            const newSet = new Set(prev);
+            if (isCurrentlyLiked) {
+                newSet.delete(snippetId)
+            } else {
+                newSet.add(snippetId)
+            }
+            return newSet
         });
+
+        const filteredLikedBy = isCurrentlyLiked
+            ? currentLikedBy.filter(id => id !== user.$id)
+            : [...currentLikedBy, user.$id]
+
+        setSnippets(prev => prev.map(s =>
+            s.$id === snippetId
+                ? { ...s,
+                    likes: isCurrentlyLiked ? Math.max(0, currentCount - 1) : currentCount + 1,
+                    likedBy: filteredLikedBy
+                }
+                : s
+        ));
+
+        try {
+            await toggleSnippetLike(snippetId, isCurrentlyLiked, currentCount, user.$id, currentLikedBy)
+        } catch (err) {
+            console.error('Failed to update like', err);
+
+            // Rollback on error
+            setLikedSnippets(prev => {
+                const newSet = new Set(prev);
+                if (isCurrentlyLiked) {
+                    newSet.add(snippetId)
+                } else {
+                    newSet.delete(snippetId)
+                }
+                return newSet
+            });
+
+            setSnippets(prev => prev.map(s =>
+            s.$id === snippetId
+                ? { ...s,
+                    likes: currentCount,
+                    likedBy: currentLikedBy,
+                }
+                : s
+            ));
+
+            alert('Failed to update like. Please try again.')
+        }
+    };
+
+    const handleToggleComments = (snippetId) => {
+        setVisibleComments(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(snippetId)) {
+                newSet.delete(snippetId)
+            } else {
+                newSet.add(snippetId)
+            }
+            return newSet
+        });
+    };
+
+    const handleCommentCountChange = async (snippetId, newCount) => {
+        setSnippets(prev => prev.map(s =>
+            s.$id === snippetId
+                ? { ...s, commentsCount: newCount }
+                : s
+        ));
+
+        try {
+            await updateSnippetCommentCount(snippetId, newCount);
+        } catch (err) {
+            console.error ('Failed to update comment count', err)
+
+            // Rollback error - refetch tghe snippet to get accurate count
+            const snippet = snippet.find(s => s.$id === snippetId)
+            if (snippet) {
+                setSnippets(prev => prev.map(s =>
+                s.$id === snippetId
+                    ? { ...s, commentCount: snippet.commentCount || 0 }
+                    : s
+                ));
+            }
+        }
+    }
+
+    const handleShare = async (snippetId) => {
+        const snippet = snippets.find(s => s.$id === snippetId);
+        if (!snippet) return
+
+        const currentCount = snippet.shares || 0;
+
+        setSnippets(prev => prev.map(s =>
+            s.$id === snippetId
+                ? { ...s, shares: currentCount + 1 }
+                : s
+        ));
+
+        try {
+            await incrementSnippetShare(snippetId, currentCount)
+
+            alert ('Share link copied!')
+        } catch (err) {
+            console.error('Failed to update share count:', err)
+
+            setSnippets(prev => prev.map(s =>
+                s.$id === snippetId
+                    ? { ...s, shares: currentCount }
+                    : s
+            ));
+            alert('Failed to share. Please try again.')
+        };
     };
 
     return (
@@ -194,8 +320,15 @@ const Home = () => {
                         </View>
                     )}
 
-                    {!loading && !error && snippets.map((snippet) => (
-                        <View key={snippet.$id}>
+                    {!loading && !error && snippets.map((snippet) => {
+                        const isLiked = likedSnippets.has(snippet.$id);
+                        const showComments = visibleComments.has(snippet.$id)
+                        const likeCount = snippet.likes || 0
+                        const commentCount = snippet.commentsCount || 0
+                        const shareCount = snippet.shares || 0
+
+                        return (
+                            <View key={snippet.$id}>
                             <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
                                 <View style={styles.cardTop}>
                                     <View style={styles.profileUsernameGenre}>
@@ -251,110 +384,41 @@ const Home = () => {
                                     />
                                 </View>
                                 <View style={styles.reactions}>
-                                    <Pressable style={styles.likes} onPress={togglePostLike}>
+                                    <Pressable style={styles.likes} onPress={() => handleToggleLike(snippet.$id)}>
                                         <Ionicons
-                                            name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
+                                            name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
                                             size={28}
-                                            color={postLiked ? "#06B6D4" : theme.textSecondary}
+                                            color={isLiked ? "#06B6D4" : theme.textSecondary}
                                         />
                                         <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
                                     </Pressable>
-                                    <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
+                                    <Pressable style={styles.reactionsItem} onPress={() => handleToggleComments(snippet.$id)}>
                                         <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
+                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{commentCount}</Text>
                                     </Pressable>
-                                    <View style={styles.reactionsItem}>
+                                    <Pressable style={styles.reactionsItem} onPress={() => handleShare(snippet.$id)}>
                                         <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>0</Text>
-                                    </View>
+                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{shareCount}</Text>
+                                    </Pressable>
                                 </View>
+                                {showComments && (
+                                    <View>
+                                        <ThemedComments
+                                            theme={theme}
+                                            soundRef={soundRef}
+                                            position={position}
+                                            user={user}
+                                            profileImage={profileImage}
+                                            onCountChange={(count) => handleCommentCountChange(snippet.$id, count)}
+                                            style={{}}
+                                        />
+                                    </View>
+                                )}
                             </View>
                             <Spacer />
-                        </View>
-                    ))}
-
-                    {/* Original Example Card */}
-                    <View style={[ styles.card,
-                    { 
-                        backgroundColor: theme.cardBackground,
-                    }]}>
-                        <View style={styles.cardTop}>
-                            <View style={styles.profileUsernameGenre}>
-                                <Image
-                                    source={
-                                        profileImage
-                                        ? { uri: profileImage }
-                                        : require('../../assets/icon.png') // fallback / default
-                                    }
-                                    style={{
-                                        width: 40,
-                                        height: 40,
-                                        borderRadius: 20,
-                                    }}
-                                />
-                                <View style={styles.userGenre}>
-                                    <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        gap: 4,
-                                    }}>
-                                        <View style ={{
-                                            width: 8,
-                                            height: 8,
-                                            borderRadius: 4,
-                                            backgroundColor: '#06B6D4',
-                                        }} />
-                                        <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
-                                    </View>
-                                </View>
                             </View>
-                            <View style={[styles.cardTopRight, {}]}>
-                                <Pressable onPress={handleCardOptions}>
-                                    <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-                                    {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
-                                </Pressable>
-                            </View>
-                        </View>
-                        <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
-                        <View style={styles.waveform}>
-                            <ThemedWaveform 
-                                audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
-                                theme={theme}
-                                soundRef={soundRef}
-                                onPositionChange={setPosition}
-                            />
-                        </View>
-                        <View style={styles.reactions}>
-                            <Pressable style={styles.likes} onPress={togglePostLike}>
-                                <Ionicons
-                                    name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
-                                    size={28}
-                                    color={postLiked ? "#06B6D4" : theme.textSecondary}
-                                />
-                                <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
-                            </Pressable>
-                            <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
-                                <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                                <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
-                            </Pressable>
-                            <View style={styles.reactionsItem}>
-                                <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                                <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
-                            </View>
-                        </View>
-                        <View style={{ display: showComments ? 'flex' : 'none' }}>
-                        <ThemedComments
-                            theme={theme}
-                            soundRef={soundRef}
-                            position={position}
-                            user={user}
-                            profileImage={profileImage}
-                            onCountChange={setTotalComments}
-                            style={{}}
-                        />
-                        </View>
-                    </View>
+                        );
+                    })}
                 </ScrollView>
             </ThemedView>
         </TouchableWithoutFeedback>
