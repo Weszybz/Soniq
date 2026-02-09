@@ -165,190 +165,197 @@ const Home = () => {
                 </View>
                 <Spacer />
 
-                {/* Snippets Feed*/}
-                {loading && (
-                    <View style={[styles.feedState, { width: '90%' }]}>
-                        <ActivityIndicator size="large" color={theme.textSecondary} />
-                        <Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
-                    </View>
-                )}
+                
+                <ScrollView
+                    style={styles.ScrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Snippets Feed*/}
+                    {loading && (
+                        <View style={[styles.feedState, { width: '90%' }]}>
+                            <ActivityIndicator size="large" color={theme.textSecondary} />
+                            <Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
+                        </View>
+                    )}
 
-                {error && (
-                    <View style={[styles.feedState, { width: '90%' }]}>
-                        <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-                        <Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
-                    </View>
-                )}
+                    {error && (
+                        <View style={[styles.feedState, { width: '90%' }]}>
+                            <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+                            <Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
+                        </View>
+                    )}
 
-                {!loading && !error && snippets.length === 0 && (
-                    <View style={[styles.feedState, {width: '90%'}]}>
-                        <Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
-                        <Text style={[styles.feedStateText, {color: theme.textSecondary }]}>No snippets yet</Text>
-                        <Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
-                    </View>
-                )}
+                    {!loading && !error && snippets.length === 0 && (
+                        <View style={[styles.feedState, {width: '90%'}]}>
+                            <Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
+                            <Text style={[styles.feedStateText, {color: theme.textSecondary }]}>No snippets yet</Text>
+                            <Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
+                        </View>
+                    )}
 
-                {!loading && !error && snippets.map((snippet) => (
-                    <View key={snippet.$id}>
-                        <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
-                            <View style={styles.cardTop}>
-                                <View style={styles.profileUsernameGenre}>
-                                    <Image
-                                        source={
-                                            snippet.profileImage
-                                            ? { uri: snippet.profileImage }
-                                            : require('../../assets/icon.png') // fallback / default
-                                        }
-                                        style={{
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: 20,
-                                        }}
-                                    />
-                                    <View style={styles.userGenre}>
-                                        <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>
-                                            {snippet.username || 'Anonymous'}
-                                        </Text>
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            gap: 4,
-                                        }}>
-                                            <View style ={{
-                                                width: 8,
-                                                height: 8,
-                                                borderRadius: 4,
-                                                backgroundColor: '#06B6D4',
-                                            }} />
-                                            <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>
-                                                {snippet.genre}
+                    {!loading && !error && snippets.map((snippet) => (
+                        <View key={snippet.$id}>
+                            <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
+                                <View style={styles.cardTop}>
+                                    <View style={styles.profileUsernameGenre}>
+                                        <Image
+                                            source={
+                                                snippet.profileImage
+                                                ? { uri: snippet.profileImage }
+                                                : require('../../assets/icon.png') // fallback / default
+                                            }
+                                            style={{
+                                                width: 40,
+                                                height: 40,
+                                                borderRadius: 20,
+                                            }}
+                                        />
+                                        <View style={styles.userGenre}>
+                                            <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>
+                                                {snippet.username || 'Anonymous'}
                                             </Text>
+                                            <View style={{
+                                                flexDirection: 'row',
+                                                alignItems: 'center',
+                                                gap: 4,
+                                            }}>
+                                                <View style ={{
+                                                    width: 8,
+                                                    height: 8,
+                                                    borderRadius: 4,
+                                                    backgroundColor: '#06B6D4',
+                                                }} />
+                                                <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>
+                                                    {snippet.genre}
+                                                </Text>
+                                            </View>
                                         </View>
                                     </View>
+                                    <View style={[styles.cardTopRight, {}]}>
+                                        <Pressable onPress={handleCardOptions}>
+                                            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                                            {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                                        </Pressable>
+                                    </View>
                                 </View>
-                                <View style={[styles.cardTopRight, {}]}>
-                                    <Pressable onPress={handleCardOptions}>
-                                        <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-                                        {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
-                                    </Pressable>
-                                </View>
-                            </View>
-                            <Text style={[styles.title, { color: theme.textPrimary }]}>
-                                {snippet.title}
-                            </Text>
-                            <View style={styles.waveform}>
-                                <ThemedWaveform 
-                                    audioUri={snippet.fileUrl}
-                                    theme={theme}
-                                    soundRef={soundRef}
-                                    onPositionChange={setPosition}
-                                />
-                            </View>
-                            <View style={styles.reactions}>
-                                <Pressable style={styles.likes} onPress={togglePostLike}>
-                                    <Ionicons
-                                        name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
-                                        size={28}
-                                        color={postLiked ? "#06B6D4" : theme.textSecondary}
+                                <Text style={[styles.title, { color: theme.textPrimary }]}>
+                                    {snippet.title}
+                                </Text>
+                                <View style={styles.waveform}>
+                                    <ThemedWaveform 
+                                        audioUri={snippet.fileUrl}
+                                        theme={theme}
+                                        soundRef={soundRef}
+                                        onPositionChange={setPosition}
                                     />
-                                    <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
-                                </Pressable>
-                                <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
-                                    <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                                    <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
-                                </Pressable>
-                                <View style={styles.reactionsItem}>
-                                    <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                                    <Text style={[styles.numbers, { color: theme.textPrimary}]}>0</Text>
+                                </View>
+                                <View style={styles.reactions}>
+                                    <Pressable style={styles.likes} onPress={togglePostLike}>
+                                        <Ionicons
+                                            name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
+                                            size={28}
+                                            color={postLiked ? "#06B6D4" : theme.textSecondary}
+                                        />
+                                        <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
+                                    </Pressable>
+                                    <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
+                                        <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
+                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
+                                    </Pressable>
+                                    <View style={styles.reactionsItem}>
+                                        <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
+                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>0</Text>
+                                    </View>
                                 </View>
                             </View>
+                            <Spacer />
                         </View>
-                        <Spacer />
-                    </View>
-                ))}
+                    ))}
 
-                {/* Original Example Card */}
-                <View style={[ styles.card,
-                { 
-                    backgroundColor: theme.cardBackground,
-                }]}>
-                    <View style={styles.cardTop}>
-                        <View style={styles.profileUsernameGenre}>
-                            <Image
-                                source={
-                                    profileImage
-                                    ? { uri: profileImage }
-                                    : require('../../assets/icon.png') // fallback / default
-                                }
-                                style={{
-                                    width: 40,
-                                    height: 40,
-                                    borderRadius: 20,
-                                }}
-                            />
-                            <View style={styles.userGenre}>
-                                <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
-                                <View style={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                }}>
-                                    <View style ={{
-                                        width: 8,
-                                        height: 8,
-                                        borderRadius: 4,
-                                        backgroundColor: '#06B6D4',
-                                    }} />
-                                    <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
+                    {/* Original Example Card */}
+                    <View style={[ styles.card,
+                    { 
+                        backgroundColor: theme.cardBackground,
+                    }]}>
+                        <View style={styles.cardTop}>
+                            <View style={styles.profileUsernameGenre}>
+                                <Image
+                                    source={
+                                        profileImage
+                                        ? { uri: profileImage }
+                                        : require('../../assets/icon.png') // fallback / default
+                                    }
+                                    style={{
+                                        width: 40,
+                                        height: 40,
+                                        borderRadius: 20,
+                                    }}
+                                />
+                                <View style={styles.userGenre}>
+                                    <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>beatmaker123</Text>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        gap: 4,
+                                    }}>
+                                        <View style ={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: 4,
+                                            backgroundColor: '#06B6D4',
+                                        }} />
+                                        <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>Electric</Text>
+                                    </View>
                                 </View>
                             </View>
+                            <View style={[styles.cardTopRight, {}]}>
+                                <Pressable onPress={handleCardOptions}>
+                                    <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
+                                    {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                                </Pressable>
+                            </View>
                         </View>
-                        <View style={[styles.cardTopRight, {}]}>
-                            <Pressable onPress={handleCardOptions}>
-                                <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-                                {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
+                        <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
+                        <View style={styles.waveform}>
+                            <ThemedWaveform 
+                                audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
+                                theme={theme}
+                                soundRef={soundRef}
+                                onPositionChange={setPosition}
+                            />
+                        </View>
+                        <View style={styles.reactions}>
+                            <Pressable style={styles.likes} onPress={togglePostLike}>
+                                <Ionicons
+                                    name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
+                                    size={28}
+                                    color={postLiked ? "#06B6D4" : theme.textSecondary}
+                                />
+                                <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
                             </Pressable>
+                            <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
+                                <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
+                                <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
+                            </Pressable>
+                            <View style={styles.reactionsItem}>
+                                <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
+                                <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
+                            </View>
                         </View>
-                    </View>
-                    <Text style={[styles.title, { color: theme.textPrimary }]}>Unnamed</Text>
-                    <View style={styles.waveform}>
-                        <ThemedWaveform 
-                            audioUri="https://fra.cloud.appwrite.io/v1/storage/buckets/690d1d0b00220b4ab292/files/691e1114000cee48b6d5/view?project=690cb4cd003868dbbe00&mode=admin"
+                        <View style={{ display: showComments ? 'flex' : 'none' }}>
+                        <ThemedComments
                             theme={theme}
                             soundRef={soundRef}
-                            onPositionChange={setPosition}
+                            position={position}
+                            user={user}
+                            profileImage={profileImage}
+                            onCountChange={setTotalComments}
+                            style={{}}
                         />
-                    </View>
-                    <View style={styles.reactions}>
-                        <Pressable style={styles.likes} onPress={togglePostLike}>
-                            <Ionicons
-                                name={postLiked ? "thumbs-up" : "thumbs-up-outline"}
-                                size={28}
-                                color={postLiked ? "#06B6D4" : theme.textSecondary}
-                            />
-                            <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
-                        </Pressable>
-                        <Pressable style={styles.reactionsItem} onPress={() => setShowComments(!showComments)}>
-                            <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>{totalComments}</Text>
-                        </Pressable>
-                        <View style={styles.reactionsItem}>
-                            <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                            <Text style={[styles.numbers, { color: theme.textPrimary}]}>3</Text>
                         </View>
                     </View>
-                    <View style={{ display: showComments ? 'flex' : 'none' }}>
-                      <ThemedComments
-                          theme={theme}
-                          soundRef={soundRef}
-                          position={position}
-                          user={user}
-                          profileImage={profileImage}
-                          onCountChange={setTotalComments}
-                          style={{}}
-                      />
-                    </View>
-                </View>
+                </ScrollView>
             </ThemedView>
         </TouchableWithoutFeedback>
     )
@@ -476,5 +483,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         textAlign: 'center',
     },
+    ScrollView: {
+        flex: 1,
+        width: '100%',
+    },
+    scrollContent: {
+        alignItems: 'center',
+        paddingBottom: 96,
+    }
 
 })
