@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
 import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
+import { listCommentsBySnippet } from '../../lib/comments';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -87,6 +88,8 @@ const Home = () => {
 
     const [likedSnippets, setLikedSnippets] = useState(new Set());
     const [visibleComments, setVisibleComments] = useState(new Set())
+    const [commentsBySnippetId, setCommentsBySnippetId] = useState({});
+    const [commentsLoading, setCommentsLoading] = useState({});
 
 
     useEffect(() => {
@@ -176,16 +179,51 @@ const Home = () => {
         }
     };
 
-    const handleToggleComments = (snippetId) => {
+    const handleToggleComments = async (snippetId) => {
+        const isCurrentlyVisible = visibleComments.has(snippetId);
         setVisibleComments(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(snippetId)) {
+            if (isCurrentlyVisible) {
                 newSet.delete(snippetId)
             } else {
                 newSet.add(snippetId)
             }
             return newSet
         });
+
+        if (!isCurrentlyVisible && !commentsBySnippetId[snippetId]) {
+            setCommentsLoading(prev => ({ ...prev, [snippetId]: true }));
+
+            try {
+                const commentsFromDb = await listCommentsBySnippet(snippetId);
+
+                const mappedComments = commentsFromDb.map(comment => ({
+                    id: comment.$id,
+                    username: comment.username,
+                    avatarUrl: comment.profileImage || null,
+                    text: comment.content,
+                    time: comment.timestamp || 0,
+                    likes: comment.likes || 0,
+                    likedByCurrentUser: comment.likedBy?.includes(user.$id) || false,
+                    replyTo: comment.parentCommentId || null,
+                    createdAt: comment.$createdAt,
+                }));
+
+                setCommentsBySnippetId(prev => ({
+                    ...prev,
+                    [snippetId]: mappedComments
+                }));
+            } catch (error) {
+                console.error("Failed to fetch comments:", err);
+
+                setCommentsBySnippetId(prev => ({
+                    ...prev,
+                    [snippetId]: []
+                }));
+            } finally {
+                setCommentsLoading(prev => ({ ...prev, [snippetId]: false }))
+            }
+        }
     };
 
     const handleCommentCountChange = async (snippetId, newCount) => {
@@ -211,6 +249,14 @@ const Home = () => {
             }
         }
     }
+
+    const handleIncrementCommentCount = (snippetId) => {
+        setSnippets(prev => prev.map(s =>
+            s.$id === snippetId
+                ? { ...s, commentsCount: (s.commentsCount || 0) + 1}
+                : s
+        ));
+    };
 
     const handleShare = async (snippetId) => {
         const snippet = snippets.find(s => s.$id === snippetId);
@@ -404,12 +450,21 @@ const Home = () => {
                                 {showComments && (
                                     <View>
                                         <ThemedComments
+                                            snippetId={snippet.$id}
+                                            initialComments={commentsBySnippetId[snippet.$id] || []}
+                                            loading={commentsLoading[snippet.$id] || false}
                                             theme={theme}
                                             soundRef={soundRef}
                                             position={position}
                                             user={user}
                                             profileImage={profileImage}
-                                            onCountChange={(count) => handleCommentCountChange(snippet.$id, count)}
+                                            onCommentAdded={() => handleIncrementCommentCount(snippet.$id)}
+                                            onCommentsUpdate={(comments) => {
+                                                setCommentsBySnippetId(prev => ({
+                                                    ...prev,
+                                                    [snippet.$id]: comments
+                                                }));
+                                            }}
                                             style={{}}
                                         />
                                     </View>

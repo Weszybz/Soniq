@@ -1,30 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Pressable, Image } from "react-native";
+import { View, Text, StyleSheet, TextInput, Pressable, Image, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { createComment, toggleCommentLike } from "../lib/comments";
+import { incrementSnippetCommentsCount } from "../lib/snippets";
+import { avatar } from "../lib/appwrite";
 
-const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCountChange }) => {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      username: "Username 2",
-      text: "Can this be a bit smoother?",
-      time: 32,
-      likes: 15,
-      likedByCurrentUser: false,
-    },
-    {
-      id: 2,
-      username: "Username 3",
-      text: "Love this note!!",
-      time: 72,
-      likes: 25,
-      likedByCurrentUser: false,
-    },
-  ]);
-
+const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, user, profileImage, onCommentAdded, onCommentsUpdate }) => {
+  const [comments, setComments] = useState(initialComments);
   const [textInput, setTextInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
   const [openThreads, setOpenThreads] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    setComments(initialComments);
+  }, [snippetId, initialComments]);
+
+  useEffect(() => {
+    onCommentsUpdate?.(comments);
+  }, [comments]);
 
   const formatTime = (sec) => {
     const m = Math.floor(sec / 60);
@@ -32,23 +26,52 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
-  const handleAdd = () => {
-    if (!textInput.trim()) return;
+  const formatRelativeTime = (timestamp) => {
+    if (!timestamp) return "";
+
+    const now = Date.now();
+    const currentTime = new Date(timestamp).getTime();
+    const diffMs = now - currentTime;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay =  Math.floor(diffHour / 24);
+
+    if (diffSec < 60) return "just now";
+    if (diffMin < 60) return `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
+    if (diffHour < 24) return `${diffHour} hour${diffHour !== 1 ? 's' : ''} ago`;
+    if (diffDay < 7) return `${diffDay} day${diffDay !== 1 ? 's': ''} ago`;
+
+    const date = new Date(timestamp);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date. getDate().toString().padStart(2, '0');
+    return `${month}/${day}`;
+  }
+
+  const handleAdd = async () => {
+    if (!textInput.trim() || isSubmitting) return;
+
+    setIsSubmitting(true)
 
     const newComment = {
-      id: Date.now(),
+      id: `temp-${Date.now()}`,
       username: user?.prefs?.username || "You",
       avatarUrl: user?.prefs?.avatarUrl || profileImage || null,
-      text: textInput,
+      text: textInput.trim(),
       time: Math.floor(position / 1000),
       likes: 0,
       likedByCurrentUser: false,
       replyTo: replyTo ? replyTo.id : null,
+      createdAt: new Date().toISOString(),
     };
 
+    const previousComments = [...comments];
+    const inputValue = textInput;
+    const replyToValue = replyTo;
+
     setComments((prev) => {
-      if (!replyTo) return [...prev, newComment];
-      const index = prev.findIndex((c) => c.id === replyTo.id);
+      if (!replyToValue) return [...prev, newComment];
+      const index = prev.findIndex((c) => c.id === replyToValue.id);
       if (index === -1) return [...prev, newComment];
       const updated = [...prev];
       updated.splice(index + 1, 0, newComment);
@@ -56,11 +79,48 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
     });
     setTextInput("");
     setReplyTo(null);
-  };
 
-  useEffect(() => {
-    onCountChange?.(comments.length);
-  }, [comments]);
+    try {
+      const createdComment = await createComment({
+        snippetId,
+        content: inputValue,
+        parentCommentId: replyToValue ? replyToValue.id : null,
+        timestamp: Math.floor(position / 1000),
+      });
+
+      await incrementSnippetCommentsCount(snippetId, 1);
+
+      onCommentAdded?.();
+
+      setComments((prev) =>
+        prev.map((c) => 
+          c.id === newComment.id
+            ? {
+              id: createdComment.$id,
+              username: createdComment.username,
+              profileImage: createdComment.profileImage || null,
+              text: createdComment.content,
+              time: createdComment.timestamp || 0,
+              likes: createdComment.likes || 0,
+              likedByCurrentUser: false,
+              replyTo: createdComment.parentCommentId || null,
+              createdAt: createdComment.$createdAt,
+            } 
+          : c
+        )
+      );
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+
+      setComments(previousComments);
+      setTextInput(inputValue);
+      setReplyTo(replyToValue);
+
+      alert("Failed to add comment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const jumpToTime = async (sec) => {
     if (!soundRef?.current) return;
@@ -71,18 +131,42 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
     }
   };
 
-  const toggleLike = (id) => {
+  const toggleLike = async (commentId) => {
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment || !user?.$id) return;
+
+    const wasLiked = comment.likedByCurrentUser;
+    const currentLikes = comment.likes || 0;
+
     setComments((prev) =>
       prev.map((c) => {
-        if (c.id !== id) return c;
-        const hasLiked = c.likedByCurrentUser;
+        if (c.id !== commentId) return c;
         return {
           ...c,
-          likes: hasLiked ? c.likes - 1 : c.likes + 1,
-          likedByCurrentUser: !hasLiked,
+          likes: wasLiked ? Math.max(0, currentLikes - 1) : currentLikes + 1,
+          likedByCurrentUser: !wasLiked,
         };
       })
     );
+
+    try {
+      await toggleCommentLike(commentId, wasLiked, user.$id);
+    } catch (err) {
+      console.error("Failed to update comment like:", err);
+
+      setComments((prev) =>
+        prev.map((c) => {
+          if (c.id !== commentId) return c;
+          return {
+            ...c,
+            likes: currentLikes,
+            likedByCurrentUser: wasLiked,
+          };
+        })
+      );
+
+      alert("Failed to update like. Please try again.");
+    }
   };
 
   const toggleThread = (id) => {
@@ -91,50 +175,68 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
 
   return (
     <View style={styles.container}>
-      {comments.map((c, index) => {
-        const replyCount = comments.filter((x) => x.replyTo === c.id).length;
-        if (c.replyTo && !openThreads[c.replyTo]) return null;
-        return (
-          <View key={c.id} style={[styles.comment, c.replyTo ? styles.replyIndent : null]}>
-            <View style={styles.header}>
-              <Image
-                source={
-                  c.avatarUrl
-                    ? { uri: c.avatarUrl }
-                    : c.username === (user?.prefs?.username || "You")
-                      ? (profileImage ? { uri: profileImage } : require('../assets/icon.png'))
-                      : require('../assets/icon.png')
-                }
-                style={styles.avatarImage}
-              />
-              <Text style={[styles.username, { color: theme.textPrimary }]}>{c.username}</Text>
-            </View>
-            <Text style={[styles.text, { color: theme.textPrimary }]}>{c.text}</Text>
-            <Pressable onPress={() => jumpToTime(c.time)}>
-              <Text style={[styles.time, { color: '#06B6D4' }]}>
-                @{formatTime(c.time)}
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => setReplyTo({ id: c.id, username: c.username })}>
-              <Text style={[styles.reply, { color: theme.textSecondary }]}>Reply</Text>
-            </Pressable>
-
-            <View style={styles.actionRow}>
-              <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
-                <Ionicons name={c.likedByCurrentUser ? "thumbs-up" : "thumbs-up-outline"} size={18} color={c.likedByCurrentUser ? "#06B6D4" : theme.textSecondary}></Ionicons>
-                <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color={theme.textSecondary} />
+          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading comments...</Text>
+        </View>
+      ) : comments.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, {color: theme.textSecondary }]}>No comments yet, Be the first!</Text>
+          </View>
+      ) : (
+        comments.map((c, index) => {
+          const replyCount = comments.filter((x) => x.replyTo === c.id).length;
+          if (c.replyTo && !openThreads[c.replyTo]) return null;
+          return (
+            <View key={c.id} style={[styles.comment, c.replyTo ? styles.replyIndent : null]}>
+              <View style={styles.header}>
+                <Image
+                  source={
+                    c.avatarUrl
+                      ? { uri: c.avatarUrl }
+                      : c.username === (user?.prefs?.username || "You")
+                        ? (profileImage ? { uri: profileImage } : require('../assets/icon.png'))
+                        : require('../assets/icon.png')
+                  }
+                  style={styles.avatarImage}
+                />
+                <View style={styles.headerText}>
+                  <Text style={[styles.username, { color: theme.textPrimary }]}>{c.username}</Text>
+                  {c.createdAt && (
+                    <Text style={[styles.timestamp, { color: theme.textSecondary }]}>
+                      {formatRelativeTime(c.createdAt)}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <Text style={[styles.text, { color: theme.textPrimary }]}>{c.text}</Text>
+              <Pressable onPress={() => jumpToTime(c.time)}>
+                <Text style={[styles.time, { color: '#06B6D4' }]}>
+                  @{formatTime(c.time)}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => setReplyTo({ id: c.id, username: c.username })}>
+                <Text style={[styles.reply, { color: theme.textSecondary }]}>Reply</Text>
               </Pressable>
 
-              {replyCount > 0 && (
-                <Pressable style={styles.replyCountBtn} onPress={() => toggleThread(c.id)}>
-                  <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
-                  <Text style={[styles.replyCount, { color: theme.textSecondary }]}>{replyCount}</Text>
+              <View style={styles.actionRow}>
+                <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
+                  <Ionicons name={c.likedByCurrentUser ? "thumbs-up" : "thumbs-up-outline"} size={18} color={c.likedByCurrentUser ? "#06B6D4" : theme.textSecondary}></Ionicons>
+                  <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
                 </Pressable>
-              )}
+
+                {replyCount > 0 && (
+                  <Pressable style={styles.replyCountBtn} onPress={() => toggleThread(c.id)}>
+                    <Ionicons name="chatbubble-outline" size={16} color={theme.textSecondary} />
+                    <Text style={[styles.replyCount, { color: theme.textSecondary }]}>{replyCount}</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
-          </View>
-        );
-      })}
+          );
+        })
+      )}
 
       <View style={styles.inputRow}>
         <TextInput
@@ -142,10 +244,15 @@ const ThemedComments = ({ theme, soundRef, position, user, profileImage, onCount
           placeholderTextColor={theme.textPrimary + "80"}
           value={textInput}
           onChangeText={setTextInput}
+          editable={!isSubmitting}
           style={[styles.input, { borderColor: theme.textPrimary, color: theme.textPrimary }]}
         />
-        <Pressable onPress={handleAdd} style={styles.sendBtn}>
-          <Ionicons name="send" size={20} color={theme.textPrimary} />
+        <Pressable onPress={handleAdd} style={styles.sendBtn} disabled={isSubmitting || !textInput.trim()}>
+          {isSubmitting ? (
+            <ActivityIndicator size='small' color={theme.textPrimary} />
+          ) : (
+            <Ionicons name="send" size={20} color={textInput.trim() ? theme.textPrimary : theme.textSecondary} />
+          )}
         </Pressable>
       </View>
     </View>
@@ -170,6 +277,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
+  headerText: {
+    flexDirection: "column",
+    flex: 1,
+  },
   avatar: {
     width: 22,
     height: 22,
@@ -183,6 +294,10 @@ const styles = StyleSheet.create({
   username: {
     fontWeight: "600",
     fontSize: 14,
+  },
+  timestamp: {
+    fontSize: 11,
+    marginTop: 1,
   },
   text: {
     marginTop: 2,
@@ -240,5 +355,23 @@ const styles = StyleSheet.create({
   },
   replyCount: {
     fontSize: 12,
+  },
+  loadingContainer: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  loadingText: {
+    fontSize: 14,
+  },
+  emptyContainer: {
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });
