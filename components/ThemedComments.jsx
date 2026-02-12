@@ -5,7 +5,7 @@ import { createComment, toggleCommentLike } from "../lib/comments";
 import { incrementSnippetCommentsCount } from "../lib/snippets";
 import { avatar } from "../lib/appwrite";
 
-const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, user, profileImage, onCommentAdded, onCommentsUpdate }) => {
+const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, isActive = false, user, profileImage, onCommentAdded, onCommentsUpdate }) => {
   const [comments, setComments] = useState(initialComments);
   const [textInput, setTextInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -123,7 +123,7 @@ const ThemedComments = ({ snippetId, initialComments = [], loading = false, them
   };
 
   const jumpToTime = async (sec) => {
-    if (!soundRef?.current) return;
+    if (!soundRef?.current || !isActive) return;
     try {
       await soundRef.current.setPositionAsync(sec * 1000);
     } catch (e) {

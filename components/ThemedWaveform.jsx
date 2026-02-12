@@ -4,17 +4,39 @@ import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSpring } from "react-native-reanimated";
 
-const ThemedWaveform = ({ audioUri, theme, soundRef, onPositionChange }) => {
+const ThemedWaveform = ({ snippetId, audioUri, theme, soundRef, isActive = false, duration = 0, position = 0, onPlay, onPositionChange, onDurationChange }) => {
   const [bars] = useState(
     Array.from({ length: 40 }).map(() => 10 + Math.random() * 30)
   );
 
-//   const soundRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [position, setPosition] = useState(0);
   const [waveWidth, setWaveWidth] = useState(0);
+
+  const progress = duration > 0 ? position / duration : 0;
+
+  useEffect(() => {
+    if (!isActive) {
+      setIsPlaying(false);
+    }
+  }, [isActive]);
+
+  useEffect(() => {
+    if (!isActive || !soundRef.current) return;
+
+    const checkStatus = async () => {
+      try {
+        const status = await soundRef.current.getStatusAsync();
+        if (status.isLoaded) {
+          setIsPlaying(status.isPlaying);
+        }
+      } catch (err) {
+        console.warn("Error checking status:", e);
+      }
+    };
+
+    const interval = setInterval(checkStatus, 100);
+    return () => clearInterval(interval);
+  }, [isActive, soundRef.current]);
 
   useEffect(() => {
     return () => {
@@ -25,68 +47,101 @@ const ThemedWaveform = ({ audioUri, theme, soundRef, onPositionChange }) => {
   }, []);
 
   const onPlaybackStatusUpdate = (status) => {
-    if (!status.isLoaded) return;
+    if (!status.isLoaded || !isActive) return;
 
-    if (status.durationMillis) {
-      setDuration(status.durationMillis);
-      setPosition(status.positionMillis);
-      const ratio = status.positionMillis / status.durationMillis;
-      setProgress(ratio || 0);
+    if (status.durationMillis && onDurationChange) {
+      onDurationChange(status.durationMillis);
+    }
+
+    if (status.positionMillis !== undefined && onPositionChange) {
+      onPositionChange(status.positionMillis);
     }
 
     if (status.didJustFinish) {
       setIsPlaying(false);
-      setProgress(1);
+      if (onPositionChange) {
+        onPositionChange(0);
+      }
     }
-
-    if (onPositionChange) onPositionChange(status.positionMillis);
   };
 
   const handlePlayPause = async () => {
-    if (!soundRef.current) {
+    if (onPlay) {
+      onPlay();
+    }
+
+    if (!isActive) {
+      return;
+    }
+
+    if (soundRef.current) {
       try {
-        const { sound } = await Audio.Sound.createAsync(
-          { uri: audioUri },
-          { shouldPlay: true },
-          onPlaybackStatusUpdate
-        );
-        soundRef.current = sound;
-        setIsPlaying(true);
+        const status = await soundRef.current.getStatusAsync();
+        if (!status.isLoaded) {
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: audioUri },
+            { 
+              shouldPlay: true,
+              positionMillis: position || 0
+            },
+            onPlaybackStatusUpdate
+          );
+          soundRef.current = sound;
+          setIsPlaying(true);
+          return;
+        }
+
+        if (status.isPlaying) {
+          await soundRef.current.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await soundRef.current.playAsync();
+          setIsPlaying(true);
+        }
       } catch (e) {
-        console.warn("Error loading audio:", e);
+        console.warn("Error toggling playback:", e);
       }
       return;
     }
 
-    const status = await soundRef.current.getStatusAsync();
-    if (!status.isLoaded) return;
-
-    if (status.isPlaying) {
-      await soundRef.current.pauseAsync();
-      setIsPlaying(false);
-    } else {
-      await soundRef.current.playAsync();
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        {
+          shouldPlay: true,
+          positionMillis: position || 0
+        },
+        onPlaybackStatusUpdate
+      );
+      soundRef.current = sound;
       setIsPlaying(true);
+    } catch (err) {
+      console.warn("Error loading audio:", err)
     }
   };
 
   const formatTime = (ms) => {
-    if (!ms) return "0:00";
+    if (!ms || ms === 0) return "0:00";
     const totalSec = Math.floor(ms / 1000);
     const m = Math.floor(totalSec / 60);
     const s = totalSec % 60;
     return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
+  const displayDuration = duration > 0 ? formatTime(duration) : "--:--";
+  const displayPosition = formatTime(position);
+
+
   const handleSeek = async (e) => {
-    if (!waveWidth || !soundRef.current || !duration) return;
+    if (!waveWidth || !soundRef.current || !duration || !isActive) return;
 
     const tapX = e.nativeEvent.locationX;
     const newRatio = Math.min(Math.max(tapX / waveWidth, 0), 1);
     const newPos = newRatio * duration;
 
-    setProgress(newRatio);
-    setPosition(newPos);
+    if (onPositionChange) {
+      onPositionChange(newPos);
+    }
 
     try {
       await soundRef.current.setPositionAsync(newPos);
@@ -149,10 +204,10 @@ const ThemedWaveform = ({ audioUri, theme, soundRef, onPositionChange }) => {
 
       <View style={styles.timerRow}>
         <Text style={[styles.timerText, { color: theme.textSecondary }]}>
-          {formatTime(position)}
+          {displayPosition}
         </Text>
         <Text style={[styles.timerText, { color: theme.textSecondary }]}>
-          {formatTime(duration)}
+          {displayDuration}
         </Text>
       </View>
 

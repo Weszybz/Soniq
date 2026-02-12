@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
 import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 import { listCommentsBySnippet } from '../../lib/comments';
+import { Audio } from 'expo-av';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -80,7 +81,6 @@ const Home = () => {
     const handleCardOptionsClose = () => bottomSheetRef.current?.close()
 
     const soundRef = useRef(null);
-    const [position, setPosition] = useState(0);
 
     const [snippets, setSnippets] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -91,7 +91,10 @@ const Home = () => {
     const [commentsBySnippetId, setCommentsBySnippetId] = useState({});
     const [commentsLoading, setCommentsLoading] = useState({});
 
-
+    const [activeSnippetId, setActiveSnippetId] = useState(null);
+    const [durationsById, setDurationsById] = useState({});
+    const [positionsById, setPositionsById] = useState({});
+    
     useEffect(() => {
         const fetchSnippets = async () => {
             try {
@@ -109,6 +112,7 @@ const Home = () => {
                     );
                     setLikedSnippets(userLikedSnippets)
                 }
+                await preloadSnippetMetadata(data);
             } catch (err) {
                 console.error('Failed to fetch snippets:', err);
                 setError(err?.message || 'Failed to load snippets');
@@ -118,6 +122,31 @@ const Home = () => {
         };
         fetchSnippets();
     }, [user?.$id])
+
+    const preloadSnippetMetadata = async (snippetsList) =>  {
+        const loadPromises = snippetsList.map(async (snippet) => {
+            if (!snippet.fileUrl || durationsById[snippet.$id]) return;
+            try {
+                const { sound } = await Audio.Sound.createAsync(
+                    { uri: snippet.fileUrl },
+                    { shouldPlay: false },
+                    null
+                );
+
+                const status = await sound.getStatusAsync();
+                if (status.isLoaded && status.durationMillis) {
+                    setDurationsById(prev => ({
+                        ...prev,
+                        [snippet.$id]: status.durationMillis
+                    }));
+                }
+                await sound.unloadAsync();
+            } catch (err) {
+                console.warn(`Failed to preload metadate for snippet ${snippet.$id}:`, err);
+            }
+        });
+        await Promise.allSettled(loadPromises);
+    };
 
     const handleToggleLike = async (snippetId) => {
         const snippet = snippets.find(s => s.$id === snippetId);
@@ -286,6 +315,56 @@ const Home = () => {
         };
     };
 
+    const handlePlay = async (snippet) => {
+        const snippetId = snippet.$id;
+
+        if (activeSnippetId === snippetId && soundRef.current) {
+            try {
+                const status = await soundRef.current.getStatusAsync();
+                if (status.isLoaded) {
+                    if (status.isPlaying) {
+                        await soundRef.current.pauseAsync();
+                    } else {
+                        await soundRef.current.playAsync();
+                    }
+                    return;
+                }
+            } catch (err) {
+                console.error("Error toggling playback:", err);
+            }
+        }
+
+        try {
+            if (soundRef.current) {
+                try {
+                    await soundRef.current.stopAsync();
+                    await soundRef.current.unloadAsync();
+                } catch (err) {
+                    console.warn("Error stopping previos audio:", err)
+                }
+                soundRef.current = null;
+            }
+            setActiveSnippetId(snippetId);
+        } catch (err) {
+            console.error("Error switching audio:", err);
+            alert("Faailed to play audio. Please try again.");
+        }
+    };
+
+    const handlePositionChange = (snippetId, positionMillis) => {
+        setPositionsById(prev => ({
+            ...prev,
+            [snippetId]: positionMillis
+        }));
+    };
+
+    const handleDurationChange = (snippetId, durationMillis) => {
+        setDurationsById(prev => ({
+            ...prev,
+            [snippetId]: durationMillis
+        }));
+    };
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView style = {styles.container} safe = {true}>
@@ -372,7 +451,9 @@ const Home = () => {
                         const likeCount = snippet.likes || 0
                         const commentCount = snippet.commentsCount || 0
                         const shareCount = snippet.shares || 0
-
+                        const isActive = activeSnippetId === snippet.$id;
+                        const duration = durationsById[snippet.$id] || 0;
+                        const position = positionsById[snippet.$id] || 0;
                         return (
                             <View key={snippet.$id}>
                             <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
@@ -423,10 +504,16 @@ const Home = () => {
                                 </Text>
                                 <View style={styles.waveform}>
                                     <ThemedWaveform 
+                                        snippetId={snippet.$id}
                                         audioUri={snippet.fileUrl}
                                         theme={theme}
                                         soundRef={soundRef}
-                                        onPositionChange={setPosition}
+                                        isActive={isActive}
+                                        duration={duration}
+                                        position={position}
+                                        onPlay={() => handlePlay(snippet)}
+                                        onPositionChange={(pos) => handlePositionChange(snippet.$id, pos)}
+                                        onDurationChange={(dur) => handleDurationChange(snippet.$id, dur)}
                                     />
                                 </View>
                                 <View style={styles.reactions}>
@@ -456,6 +543,7 @@ const Home = () => {
                                             theme={theme}
                                             soundRef={soundRef}
                                             position={position}
+                                            isActive={isActive}
                                             user={user}
                                             profileImage={profileImage}
                                             onCommentAdded={() => handleIncrementCommentCount(snippet.$id)}
