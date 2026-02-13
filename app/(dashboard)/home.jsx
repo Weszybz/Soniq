@@ -10,6 +10,10 @@ import { useBottomSheet } from '../../contexts/BottomSheetContext';
 import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 import { listCommentsBySnippet } from '../../lib/comments';
 import { Audio } from 'expo-av';
+import { useSharedValue } from 'react-native-reanimated';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Stack } from 'expo-router';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -17,13 +21,11 @@ import ThemedText from '../../components/ThemedText';
 import Spacer from '../../components/Spacer';
 import ThemedButton from '../../components/ThemedButton';
 import ThemedTextInput from '../../components/ThemedTextInput';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Stack } from 'expo-router';
 import ThemedBottomSheet from '../../components/ThemedBottomSheet';
 import ThemedWaveform from '../../components/ThemedWaveform';
 import ThemedComments from '../../components/ThemedComments';
-import { useSharedValue } from 'react-native-reanimated';
+import ThemedOptions from '../../components/ThemedOptions';
+
 
 
 const profileIcon = require('../../assets/icon.png');
@@ -62,16 +64,14 @@ const Home = () => {
     };
 
     const { bottomSheetRef, setContent } = useBottomSheet();
-    const handleCardOptions = () => {
+    const handleCardOptions = (snippet) => {
         setContent(
-            <View style={{ padding: 20 }}>
-                <Text style={{ fontSize:18, fontWeight:'600', color: theme.textPrimary }}>
-                    Custom Title
-                </Text>
-                <Text style={{ fontSize:14, color: theme.textPrimary }}>
-                    This is some detailed description text inside the sheet.
-                </Text>
-            </View>
+            <ThemedOptions
+                snippet={snippet}
+                theme={theme}
+                user={user}
+                onClose={() => bottomSheetRef.current?.close()}
+            />
         );
         bottomSheetRef.current?.expand();
     }; 
@@ -493,7 +493,7 @@ const Home = () => {
                                         </View>
                                     </View>
                                     <View style={[styles.cardTopRight, {}]}>
-                                        <Pressable onPress={handleCardOptions}>
+                                        <Pressable onPress={() => handleCardOptions(snippet)}>
                                             <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
                                             {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
                                         </Pressable>

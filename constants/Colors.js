@@ -18,6 +18,7 @@ export const Colors = {
     dateBackground: "#050816",
     dateBorder: "#1F2937",
     cardBackground: "#091124",
+    red: '#ef4444'
   },
   light: {
     textPrimary: "#111827",
@@ -32,5 +33,7 @@ export const Colors = {
     button: "#6366f1",
     dateBackground: "#f2f2f7",
     dateBorder: "#c6c6c8",
+    cardBackground: "#eeeeee",
+    red: '#ef4444'
   },
 }

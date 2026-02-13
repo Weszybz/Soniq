@@ -36,6 +36,7 @@ const ThemedBottomSheet = forwardRef(({ children, ...rest }, ref) => {
       index={-1}
       snapPoints={snapPoints}
       backgroundStyle={{ backgroundColor: theme.navBackground }}
+      handleIndicatorStyle={{ backgroundColor: theme.textSecondary }}
       enablePanDownToClose={true}
       backdropComponent={renderBackdrop}
       style={{
