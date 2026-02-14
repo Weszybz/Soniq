@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, ScrollView, RefreshControl} from 'react-native'
 import { React, useMemo, useState, useRef, useEffect } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useRouter } from 'expo-router';
@@ -25,6 +25,7 @@ import ThemedBottomSheet from '../../components/ThemedBottomSheet';
 import ThemedWaveform from '../../components/ThemedWaveform';
 import ThemedComments from '../../components/ThemedComments';
 import ThemedOptions from '../../components/ThemedOptions';
+import ThemedSnippet from '../../components/ThemedSnippets';
 
 
 
@@ -85,6 +86,7 @@ const Home = () => {
     const [snippets, setSnippets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
     const [likedSnippets, setLikedSnippets] = useState(new Set());
     const [visibleComments, setVisibleComments] = useState(new Set())
@@ -122,6 +124,34 @@ const Home = () => {
         };
         fetchSnippets();
     }, [user?.$id])
+
+    // Handle pull-to-refresh
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            setError(null);
+            const data = await listSnippets();
+            setSnippets(data);
+            
+            // Update liked snippets based on current user
+            if (user?.$id) {
+                const userLikedSnippets = new Set(
+                    data
+                        .filter(snippet => snippet.likedBy?.includes(user.$id))
+                        .map(snippet => snippet.$id)
+                );
+                setLikedSnippets(userLikedSnippets);
+            }
+            
+            // Preload metadata for new snippets
+            await preloadSnippetMetadata(data);
+        } catch (err) {
+            console.error('Failed to refresh snippets:', err);
+            setError(err?.message || 'Failed to refresh snippets');
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const preloadSnippetMetadata = async (snippetsList) =>  {
         const loadPromises = snippetsList.map(async (snippet) => {
@@ -421,147 +451,56 @@ const Home = () => {
                     style={styles.ScrollView}
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={handleRefresh}
+                            tintColor={theme.textSecondary}
+                            colors={[theme.textSecondary]}
+                        /> 
+                    }
                 >
                     {/* Snippets Feed*/}
                     {loading && (
-                        <View style={[styles.feedState, { width: '90%' }]}>
+                        <View style={[styles.feedState, { width: '100%' }]}>
                             <ActivityIndicator size="large" color={theme.textSecondary} />
                             <Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
                         </View>
                     )}
 
                     {error && (
-                        <View style={[styles.feedState, { width: '90%' }]}>
+                        <View style={[styles.feedState, { width: '100%' }]}>
                             <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
                             <Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
                         </View>
                     )}
 
                     {!loading && !error && snippets.length === 0 && (
-                        <View style={[styles.feedState, {width: '90%'}]}>
+                        <View style={[styles.feedState, {width: '100%'}]}>
                             <Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
-                            <Text style={[styles.feedStateText, {color: theme.textSecondary }]}>No snippets yet</Text>
+                            <Text style={[styles.feedStateText, { color: theme.textSecondary }]}>No snippets yet</Text>
                             <Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
                         </View>
                     )}
 
-                    {!loading && !error && snippets.map((snippet) => {
-                        const isLiked = likedSnippets.has(snippet.$id);
-                        const showComments = visibleComments.has(snippet.$id)
-                        const likeCount = snippet.likes || 0
-                        const commentCount = snippet.commentsCount || 0
-                        const shareCount = snippet.shares || 0
-                        const isActive = activeSnippetId === snippet.$id;
-                        const duration = durationsById[snippet.$id] || 0;
-                        const position = positionsById[snippet.$id] || 0;
-                        return (
-                            <View key={snippet.$id}>
-                            <View style={[ styles.card, { backgroundColor: theme.cardBackground }]}>
-                                <View style={styles.cardTop}>
-                                    <View style={styles.profileUsernameGenre}>
-                                        <Image
-                                            source={
-                                                snippet.profileImage
-                                                ? { uri: snippet.profileImage }
-                                                : require('../../assets/icon.png') // fallback / default
-                                            }
-                                            style={{
-                                                width: 40,
-                                                height: 40,
-                                                borderRadius: 20,
-                                            }}
-                                        />
-                                        <View style={styles.userGenre}>
-                                            <Text style={[styles.userGenreTitle, {color: theme.textPrimary}]}>
-                                                {snippet.username || 'Anonymous'}
-                                            </Text>
-                                            <View style={{
-                                                flexDirection: 'row',
-                                                alignItems: 'center',
-                                                gap: 4,
-                                            }}>
-                                                <View style ={{
-                                                    width: 8,
-                                                    height: 8,
-                                                    borderRadius: 4,
-                                                    backgroundColor: '#06B6D4',
-                                                }} />
-                                                <Text style={[styles.userGenreText, {color: theme.textSecondary}]}>
-                                                    {snippet.genre}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                    <View style={[styles.cardTopRight, {}]}>
-                                        <Pressable onPress={() => handleCardOptions(snippet)}>
-                                            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-                                            {/* <Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, Wesley</Text> */}
-                                        </Pressable>
-                                    </View>
-                                </View>
-                                <Text style={[styles.title, { color: theme.textPrimary }]}>
-                                    {snippet.title}
-                                </Text>
-                                <View style={styles.waveform}>
-                                    <ThemedWaveform 
-                                        snippetId={snippet.$id}
-                                        audioUri={snippet.fileUrl}
-                                        theme={theme}
-                                        soundRef={soundRef}
-                                        isActive={isActive}
-                                        duration={duration}
-                                        position={position}
-                                        onPlay={() => handlePlay(snippet)}
-                                        onPositionChange={(pos) => handlePositionChange(snippet.$id, pos)}
-                                        onDurationChange={(dur) => handleDurationChange(snippet.$id, dur)}
-                                    />
-                                </View>
-                                <View style={styles.reactions}>
-                                    <Pressable style={styles.likes} onPress={() => handleToggleLike(snippet.$id)}>
-                                        <Ionicons
-                                            name={isLiked ? "thumbs-up" : "thumbs-up-outline"}
-                                            size={28}
-                                            color={isLiked ? "#06B6D4" : theme.textSecondary}
-                                        />
-                                        <Text style={[styles.numbers, { color: theme.textPrimary }]}>{likeCount}</Text>
-                                    </Pressable>
-                                    <Pressable style={styles.reactionsItem} onPress={() => handleToggleComments(snippet.$id)}>
-                                        <Ionicons name="chatbubble-outline" size={24} color={theme.textSecondary} />
-                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{commentCount}</Text>
-                                    </Pressable>
-                                    <Pressable style={styles.reactionsItem} onPress={() => handleShare(snippet.$id)}>
-                                        <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-                                        <Text style={[styles.numbers, { color: theme.textPrimary}]}>{shareCount}</Text>
-                                    </Pressable>
-                                </View>
-                                {showComments && (
-                                    <View>
-                                        <ThemedComments
-                                            snippetId={snippet.$id}
-                                            initialComments={commentsBySnippetId[snippet.$id] || []}
-                                            loading={commentsLoading[snippet.$id] || false}
-                                            theme={theme}
-                                            soundRef={soundRef}
-                                            position={position}
-                                            isActive={isActive}
-                                            user={user}
-                                            profileImage={profileImage}
-                                            onCommentAdded={() => handleIncrementCommentCount(snippet.$id)}
-                                            onCommentsUpdate={(comments) => {
-                                                setCommentsBySnippetId(prev => ({
-                                                    ...prev,
-                                                    [snippet.$id]: comments
-                                                }));
-                                            }}
-                                            style={{}}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            <Spacer />
-                            </View>
-                        );
-                    })}
+                    {!loading && !error && snippets.map((snippet) => (
+                        <ThemedSnippet
+                            key={snippet.$id}
+                            snippet={snippet}
+                            currentUser={user}
+                            theme={theme}
+                            soundRef={soundRef}
+                            activeSnippetId={activeSnippetId}
+                            onSnippetActivate={(id) => setActiveSnippetId(id)}
+                            onSnippetUpdate={(updatedSnippet) => {
+                                setSnippets(prev => prev.map(s =>
+                                    s.$id === updatedSnippet.$id ? updatedSnippet : s
+                                ));
+                            }}
+                            onOptions={handleCardOptions}
+                            style={{ width: '90%' }}
+                        />
+                    ))}
                 </ScrollView>
             </ThemedView>
         </TouchableWithoutFeedback>

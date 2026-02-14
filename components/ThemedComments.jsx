@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { createComment, toggleCommentLike } from "../lib/comments";
 import { incrementSnippetCommentsCount } from "../lib/snippets";
 import { avatar } from "../lib/appwrite";
+import { Colors } from "../constants/Colors";
 
 const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, isActive = false, user, profileImage, onCommentAdded, onCommentsUpdate }) => {
   const [comments, setComments] = useState(initialComments);
@@ -222,7 +223,7 @@ const ThemedComments = ({ snippetId, initialComments = [], loading = false, them
 
               <View style={styles.actionRow}>
                 <Pressable style={styles.likeBtn} onPress={() => toggleLike(c.id)}>
-                  <Ionicons name={c.likedByCurrentUser ? "thumbs-up" : "thumbs-up-outline"} size={18} color={c.likedByCurrentUser ? "#06B6D4" : theme.textSecondary}></Ionicons>
+                  <Ionicons name={c.likedByCurrentUser ? "thumbs-up" : "thumbs-up-outline"} size={18} color={c.likedByCurrentUser ? Colors.primary : theme.textSecondary}></Ionicons>
                   <Text style={[styles.likeCount, { color: theme.textSecondary }]}>{c.likes}</Text>
                 </Pressable>
 

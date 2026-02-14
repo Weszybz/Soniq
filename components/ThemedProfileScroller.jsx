@@ -5,7 +5,7 @@ import ThemedText from './ThemedText'
 
 
 function ThemedProfileScroller({
-    options = ['Tracks', 'Collaborations', 'Feedback', 'Reposts', 'Likes'],
+    options = ['Snippets', 'Feedback', 'Likes', 'Collaborations', 'Reposts', 'Saved'],
     initialIndex = 0,
     onChange,          // (index, value) => void
     style,             // extra style for the ScrollView container

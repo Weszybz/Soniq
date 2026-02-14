@@ -54,11 +54,11 @@ const ThemedOptions = ({ snippet, theme, user, onClose }) => {
             }
         },
         {
-            id: 'playlist',
-            label: 'Playlist',
-            icon: 'list-outline',
+            id: 'repost',
+            label: 'Repost',
+            icon: 'repeat-outline',
             onPress: () => {
-                console.log('Add to playlist', snippet.$id);
+                console.log('Repost snippet', snippet.$id);
                 onClose?.();
             }
         },

@@ -6,8 +6,8 @@ import { Link, useRouter } from 'expo-router';
 
 import { useProfile } from '../../../contexts/ProfileContext';
 import * as ImagePicker from 'expo-image-picker';
-import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID} from '../../../lib/appwrite'
-
+import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, databases, DATABASE_ID, SNIPPETS_COLLECTION_ID } from '../../../lib/appwrite'
+import { Query } from 'react-native-appwrite';
 
 // themed components
 import ThemedView from '../../../components/ThemedView';
@@ -17,6 +17,66 @@ import ThemedButton from '../../../components/ThemedButton';
 import ThemedTextInput from '../../../components/ThemedTextInput';
 
 const profileIcon = require('../../../assets/icon.png');
+
+const syncProfileImageToSnippets = async (userId, profileImageUrl) => {
+  try {
+    let totalUpdated = 0;
+    let cursor = null;
+    const limit = 100;
+
+    // Loop through all user's snippets with pagination
+    do {
+      const queries = [
+        Query.equal('ownerId', [userId]),
+        Query.limit(limit)
+      ];
+
+      // Add cursor for pagination if available
+      if (cursor) {
+        queries.push(Query.cursorAfter(cursor));
+      }
+
+      // Fetch batch of snippets
+      const response = await databases.listDocuments(
+        DATABASE_ID,
+        SNIPPETS_COLLECTION_ID,
+        queries
+      );
+
+      // Update each snippet in this batch
+      const updatePromises = response.documents.map(snippet =>
+        databases.updateDocument(
+          DATABASE_ID,
+          SNIPPETS_COLLECTION_ID,
+          snippet.$id,
+          { profileImage: profileImageUrl }
+        )
+      );
+
+      await Promise.all(updatePromises);
+      totalUpdated += response.documents.length;
+
+      // Chexk if there are more documents
+      if (response.documents.length === limit) {
+        // Set cursor to last document's ID for next iteration
+        cursor = response.documents[response.documents.length - 1].$id;
+      } else {
+        // No more documents to process
+        cursor = null;
+      }
+    } while (cursor);
+
+    console.log(`Successfully synced profile image to ${totalUpdated} snippets`);
+    return { success: true, updatedCount: totalUpdated };
+  } catch (error) {
+    console.error('Failed to sync profile image to snippets:', error);
+    return {
+      success: false,
+      updatedCount: 0,
+      error: error.message || 'Unkown error occurred'
+    };
+  }
+};
 
 const ProfileInfo = () => {
   const colorScheme = useColorScheme()
@@ -113,6 +173,16 @@ const ProfileInfo = () => {
         profileImage: url,
       }
       await account.updatePrefs(newPrefs)
+
+      syncProfileImageToSnippets(current.$id, url)
+        .then(result => {
+          if (!result.success) {
+            console.warn(`Profile updated successfully, but snippet sync had issues: ${result.error}`);
+          }
+        })
+        .catch(err => {
+          console.error('Snippet sync error:', err);
+        })
 
       // 4️⃣ Store globally so it shows in UI & after login
       setProfileImage(url)

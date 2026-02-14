@@ -9,7 +9,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID} from '../../../lib/appwrite'
 import { Ionicons } from '@expo/vector-icons';
 
-
 // themed components
 import ThemedView from '../../../components/ThemedView';
 import ThemedText from '../../../components/ThemedText';
@@ -17,18 +16,17 @@ import Spacer from '../../../components/Spacer';
 import ThemedButton from '../../../components/ThemedButton';
 import ThemedTextInput from '../../../components/ThemedTextInput';
 import ThemedProfileScroller from '../../../components/ThemedProfileScroller';
-
-const profileIcon = require('../../../assets/icon.png');
+import ThemedProfileSnippets from '../../../components/ThemedProfileSnippets';
 
 const ProfileInfo = () => {
   const colorScheme = useColorScheme()
   const theme = Colors[colorScheme] ?? Colors.light
 
   const [error, setError] = useState(null)
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState('Snippets');
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
 
-  const options = ['Tracks', 'Collaborations', 'Feedback', 'Reposts', 'Likes'];
+  const tabOptions = ['Snippets', 'Feedback', 'Likes', 'Collaborations', 'Reposts', 'Saved'];
 
   const router = useRouter()
   const { user, logout } = useUser()
@@ -36,6 +34,12 @@ const ProfileInfo = () => {
   console.log('Profile user:', user)
 
   const { profileImage, setProfileImage } = useProfile();
+
+  // Handle tab changes
+  const handleTabChange = (index, value) => {
+    setActiveTabIndex(index);
+    setActiveTab(value);
+  };
 
   const handleSubmit = async () => {
     setError(null)
@@ -168,8 +172,22 @@ const ProfileInfo = () => {
       <Spacer />
       
       <View style={{ flexGrow: 0 }}>
-        <ThemedProfileScroller />
+        <ThemedProfileScroller 
+          options={tabOptions}
+          initialIndex={activeTabIndex}
+          onChange={handleTabChange}
+        />
       </View>
+
+      <Spacer />
+
+      {/* Tab Content - Render appropiate component based on active tab */}
+      <ThemedProfileSnippets
+        profileUserId={user?.$id}
+        currentUser={user}
+        theme={theme}
+        isActive={activeTab === 'Snippets'}
+      />
 
     </ThemedView>
   )
@@ -181,8 +199,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    //alignItems: 'center',
-    // justifyContent: 'center',
   },
   top: {
     flexDirection: 'row',
@@ -206,22 +222,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderWidth: 2,
     marginBottom: -24,
-    // position: 'absolute',
-    // bottom: '0%',
     alignSelf: 'flex-end',
   },
-  optionButtonsView: {
-    flexDirection: 'row',
-  },
-  optionButtons: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 2,
-    borderRadius: 0,
-    alignSelf: 'flex-start',
-  },
-  optionButtonsPressed: {
-    borderBlockColor: Colors.primary,
-  }
-
 })
