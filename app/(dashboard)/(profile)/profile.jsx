@@ -17,6 +17,7 @@ import ThemedButton from '../../../components/ThemedButton';
 import ThemedTextInput from '../../../components/ThemedTextInput';
 import ThemedProfileScroller from '../../../components/ThemedProfileScroller';
 import ThemedProfileSnippets from '../../../components/ThemedProfileSnippets';
+import ThemedProfileFeedback from '../../../components/ThemedProfileFeedbacks';
 
 const ProfileInfo = () => {
   const colorScheme = useColorScheme()
@@ -60,7 +61,7 @@ const ProfileInfo = () => {
     // but for a logged-in user it's not required
   }
 
-  // 📸 Open system image picker
+  // Open system image picker
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!permissionResult.granted) {
@@ -103,7 +104,7 @@ const ProfileInfo = () => {
     }
 
     try {
-      // 1️⃣ Upload to Appwrite Storage
+      // Upload to Appwrite Storage
       const uploaded = await storage.createFile(
         PROFILE_BUCKET_ID,
         ID.unique(),
@@ -117,7 +118,7 @@ const ProfileInfo = () => {
       const fileId = uploaded.$id
       const url = makeProfileImageUrl(fileId)
 
-      // 2️⃣ Save fileId in user prefs
+      // Save fileId in user prefs
       const current = await account.get()
       const newPrefs = {
         ...current.prefs,
@@ -125,7 +126,7 @@ const ProfileInfo = () => {
       }
       await account.updatePrefs(newPrefs)
 
-      // 4️⃣ Store globally so it shows in UI & after login
+      // Store globally so it shows in UI & after login
       setProfileImage(url)
       // setProfileImage('https://picsum.photos/200')
     } catch (error) {
@@ -187,6 +188,12 @@ const ProfileInfo = () => {
         currentUser={user}
         theme={theme}
         isActive={activeTab === 'Snippets'}
+      />
+
+      <ThemedProfileFeedback
+        profileUserId={user?.$id}
+        theme={theme}
+        isActive={activeTab === 'Feedback'}
       />
 
     </ThemedView>

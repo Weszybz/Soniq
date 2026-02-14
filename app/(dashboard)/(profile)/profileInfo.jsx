@@ -8,6 +8,7 @@ import { useProfile } from '../../../contexts/ProfileContext';
 import * as ImagePicker from 'expo-image-picker';
 import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, databases, DATABASE_ID, SNIPPETS_COLLECTION_ID } from '../../../lib/appwrite'
 import { Query } from 'react-native-appwrite';
+import { syncProfileImageToComments } from '../../../lib/comments'
 
 // themed components
 import ThemedView from '../../../components/ThemedView';
@@ -56,7 +57,7 @@ const syncProfileImageToSnippets = async (userId, profileImageUrl) => {
       await Promise.all(updatePromises);
       totalUpdated += response.documents.length;
 
-      // Chexk if there are more documents
+      // Check if there are more documents
       if (response.documents.length === limit) {
         // Set cursor to last document's ID for next iteration
         cursor = response.documents[response.documents.length - 1].$id;
@@ -109,7 +110,7 @@ const ProfileInfo = () => {
     // but for a logged-in user it's not required
   }
 
-  // 📸 Open system image picker
+  // Open system image picker
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!permissionResult.granted) {
@@ -152,7 +153,7 @@ const ProfileInfo = () => {
     }
 
     try {
-      // 1️⃣ Upload to Appwrite Storage
+      // Upload to Appwrite Storage
       const uploaded = await storage.createFile(
         PROFILE_BUCKET_ID,
         ID.unique(),
@@ -166,7 +167,7 @@ const ProfileInfo = () => {
       const fileId = uploaded.$id
       const url = makeProfileImageUrl(fileId)
 
-      // 2️⃣ Save fileId in user prefs
+      // Save fileId in user prefs
       const current = await account.get()
       const newPrefs = {
         ...current.prefs,
@@ -182,9 +183,20 @@ const ProfileInfo = () => {
         })
         .catch(err => {
           console.error('Snippet sync error:', err);
+        });
+        
+      syncProfileImageToComments(current.$id, url)
+        .then(result => {
+          if (!result.success) {
+            console.warn(`Profile updated successfully, but comment sync had issues: ${result.error}`);
+          }
         })
+        .catch(err => {
+          console.error('Comment sync error:', err);
+        })
+      
 
-      // 4️⃣ Store globally so it shows in UI & after login
+      // Store globally so it shows in UI & after login
       setProfileImage(url)
       // setProfileImage('https://picsum.photos/200')
     } catch (error) {
@@ -210,7 +222,7 @@ const ProfileInfo = () => {
 
       <Text>Profile</Text>
 
-      {/* 👇 Image picker */}
+      {/* Image picker */}
       <Pressable onPress={pickImage}>
           <Image
               source={
