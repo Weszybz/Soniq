@@ -18,6 +18,7 @@ import ThemedTextInput from '../../../components/ThemedTextInput';
 import ThemedProfileScroller from '../../../components/ThemedProfileScroller';
 import ThemedProfileSnippets from '../../../components/ThemedProfileSnippets';
 import ThemedProfileFeedback from '../../../components/ThemedProfileFeedbacks';
+import ThemedProfileLikes from '../../../components/ThemedProfileLikes';
 
 const ProfileInfo = () => {
   const colorScheme = useColorScheme()
@@ -196,6 +197,13 @@ const ProfileInfo = () => {
         isActive={activeTab === 'Feedback'}
       />
 
+      <ThemedProfileLikes
+        profileUserId={user?.$id}
+        currentUser={user}
+        theme={theme}
+        isActive={activeTab === 'Likes'}
+      />
+      
     </ThemedView>
   )
 }
