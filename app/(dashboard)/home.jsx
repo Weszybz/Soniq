@@ -68,6 +68,7 @@ const Home = () => {
     const handleCardOptions = (snippet) => {
         setContent(
             <ThemedOptions
+                key={`options-${snippet.$id}-${Date.now()}`}
                 snippet={snippet}
                 theme={theme}
                 user={user}

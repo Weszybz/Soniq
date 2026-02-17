@@ -13,10 +13,27 @@ const ThemedWaveform = ({ snippetId, audioUri, theme, soundRef, isActive = false
   const [waveWidth, setWaveWidth] = useState(0);
 
   const progress = duration > 0 ? position / duration : 0;
-
   useEffect(() => {
     if (!isActive) {
       setIsPlaying(false);
+    } else if (isActive && !soundRef.current) {
+      const loadAndPlay = async () => {
+        try {
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: audioUri },
+            { 
+              shouldPlay: true,
+              positionMillis: position || 0
+            },
+            onPlaybackStatusUpdate
+          );
+          soundRef.current = sound;
+          setIsPlaying(true);
+        } catch (e) {
+          console.warn("Error auto-loading audio on activation:", e);
+        }
+      }
+      loadAndPlay();
     }
   }, [isActive]);
 
@@ -66,11 +83,25 @@ const ThemedWaveform = ({ snippetId, audioUri, theme, soundRef, isActive = false
   };
 
   const handlePlayPause = async () => {
-    if (onPlay) {
-      onPlay();
-    }
-
     if (!isActive) {
+      // Stop and unload any currently playing audio before switching
+      if (soundRef.current) {
+        try {
+          const status = await soundRef.current.getStatusAsync();
+          if (status.isLoaded) {
+            await soundRef.current.stopAsync();
+            await soundRef.current.unloadAsync();
+          }
+        } catch (e) {
+          console.warn("Error stopping previous audio:", e);
+        }
+        soundRef.current = null;
+      }
+      
+      // Now notify parent to make this snippet active and load its audio
+      if (onPlay) {
+        onPlay();
+      }
       return;
     }
 

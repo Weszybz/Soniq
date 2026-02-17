@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { useRouter } from 'expo-router';
 import { toggleSnippetLike, incrementSnippetShare } from '../lib/snippets';
 import { listCommentsBySnippet } from '../lib/comments';
 import ThemedWaveform from './ThemedWaveform';
@@ -19,6 +20,7 @@ function ThemedSnippet({ snippet, currentUser, theme,
   showShare = true,
   style,
 }) {
+  const router = useRouter();
   // Internal state
   const [snippetData, setSnippetData] = useState(snippet);
   const [isLiked, setIsLiked] = useState(
@@ -209,7 +211,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     if (onSnippetActivate) {
       onSnippetActivate(snippet.$id);
     }
-    setIsPlaying(!isPlaying);
   };
 
   // Handle position change
@@ -222,6 +223,17 @@ function ThemedSnippet({ snippet, currentUser, theme,
     setDuration(dur);
   };
 
+  // Handle profile image press - navigate to uploader's profile
+  const handleProfilePress = () => {
+    if (!snippetData.ownerId) {
+      console.warn('No ownerId found for snippet:', snippet.$id);
+      return;
+    }
+    
+    // Navigate to profile with userId parameter
+    router.push(`/profile?userId=${snippetData.ownerId}`);
+  };
+
   const likeCount = snippetData.likes || 0;
   const commentCount = snippetData.commentsCount || 0;
   const shareCount = snippetData.shares || 0;
@@ -232,14 +244,16 @@ function ThemedSnippet({ snippet, currentUser, theme,
         {/* Header: Profile, Username, Genre, Options */}
         <View style={styles.cardTop}>
           <View style={styles.profileUsernameGenre}>
-            <Image
-              source={
-                snippetData.profileImage
-                  ? { uri: snippetData.profileImage }
-                  : require('../assets/icon.png')
-              }
-              style={styles.profileImage}
-            />
+            <Pressable onPress={handleProfilePress}>
+              <Image
+                source={
+                  snippetData.profileImage
+                    ? { uri: snippetData.profileImage }
+                    : require('../assets/icon.png')
+                }
+                style={styles.profileImage}
+              />
+            </Pressable>
             <View style={styles.userGenre}>
               <Text style={[styles.userGenreTitle, { color: theme.textPrimary }]}>
                 {snippetData.username || 'Anonymous'}

@@ -1,8 +1,110 @@
-import { StyleSheet, View, Text, Pressable, ScrollView, SectionListComponent } from "react-native";
+import { StyleSheet, View, Text, Pressable, ScrollView, SectionListComponent, ActivityIndicator } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
+import { useState, useEffect } from "react";
+import { isFollowing, followUser, unfollowUser } from '../lib/followService';
+import { Colors } from "../constants/Colors";
 
 const ThemedOptions = ({ snippet, theme, user, onClose }) => {
     const isOwner = snippet?.ownerId === user?.$id;
+
+    // Follow state - always start fresh
+    const [isFollowingUser, setIsFollowingUser] = useState(false);
+    const [followLoading, setFollowLoading] = useState(true);
+    const [followActionLoading, setFollowActionLoading] = useState(false);
+    
+    // Check if current user follows the snippet owner
+    // Use a ref to track if we need to check again
+    useEffect(() => {
+        let isMounted = true;
+        
+        const checkFollowStatus = async () => {
+        if (isOwner || !user?.$id || !snippet?.ownerId) {
+            if (isMounted) setFollowLoading(false);
+            return;
+        }
+        
+        if (isMounted) {
+            setFollowLoading(true);
+            setIsFollowingUser(false);
+        }
+        
+        try {
+            console.log('ThemedOptions: Checking follow status for snippet owner:', snippet.ownerId);
+            const following = await isFollowing(user.$id, snippet.ownerId);
+            console.log('ThemedOptions: Follow status result:', following);
+            
+            if (isMounted) {
+            setIsFollowingUser(following);
+            }
+        } catch (err) {
+            console.error('Failed to check follow status:', err);
+        } finally {
+            if (isMounted) {
+            setFollowLoading(false);
+            }
+        }
+        };
+        
+        // Always check on mount
+        checkFollowStatus();
+        
+        // Cleanup function
+        return () => {
+        isMounted = false;
+        };
+    }, []);
+    
+    // Handle follow action
+    const handleFollow = async () => {
+        if (!user?.$id || !snippet?.ownerId || followActionLoading) return;
+        
+        setFollowActionLoading(true);
+        setIsFollowingUser(true);
+        
+        try {
+        // Get current user's username and profile image
+        const username = user.prefs?.username || user.name || 'User';
+        const profileImage = user.prefs?.profileImage || null;
+        
+        await followUser(user.$id, snippet.ownerId, username, profileImage);
+        
+        // Close after successful follow
+        setTimeout(() => {
+            onClose?.();
+        }, 500);
+        } catch (err) {
+        console.error('Failed to follow user:', err);
+        // Rollback
+        setIsFollowingUser(false);
+        alert('Failed to follow user. Please try again.');
+        } finally {
+        setFollowActionLoading(false);
+        }
+    };
+    
+    // Handle unfollow action
+    const handleUnfollow = async () => {
+        if (!user?.$id || !snippet?.ownerId || followActionLoading) return;
+        
+        setFollowActionLoading(true);
+        setIsFollowingUser(false);
+        
+        try {
+        await unfollowUser(user.$id, snippet.ownerId);
+        
+        // Close after successful unfollow
+        setTimeout(() => {
+            onClose?.();
+        }, 500);
+        } catch (err) {
+        console.error('Failed to unfollow user:', err);
+        // Rollback
+        setIsFollowingUser(true);
+        alert('Failed to unfollow user. Please try again.');
+        } finally {
+        setFollowActionLoading(false);
+        }
+    };
 
     const ownerActions = [
         {
@@ -136,22 +238,57 @@ const ThemedOptions = ({ snippet, theme, user, onClose }) => {
 
                 {/* Follow Button - shown only when NOT owner */}
                 {!isOwner && (
-                    <Pressable
-                        style={({ pressed }) => [
-                            styles.followButton,
-                            {
-                                backgroundColor: theme.button,
-                                opacity: pressed ? 0.8 : 1
-                            }
-                        ]}
-                        onPress={() => {
-                            console.log('Follow user:', snippet?.username);
-                            onClose?.();
-                        }}
-                        >
-                            <Ionicons name="person-add-outline" size={20} color="#FFFFFF" />
-                            <Text style={styles.followButtonText}>Follow</Text>
-                        </Pressable>
+                    <>
+                        {followLoading ? (
+                            <View style={styles.followButtonSkeleton}>
+                                <ActivityIndicator size="small" color={theme.textSecondary} />
+                            </View>
+                        ) : isFollowingUser ? (
+                            <Pressable
+                                style={({ pressed }) => [
+                                styles.followButton,
+                                styles.unfollowButton,
+                                { 
+                                    backgroundColor: theme.uiBackground,
+                                    borderColor: theme.divider,
+                                    opacity: pressed ? 0.8 : 1
+                                }
+                                ]}
+                                onPress={handleUnfollow}
+                                disabled={followActionLoading}
+                            >
+                                {followActionLoading ? (
+                                    <ActivityIndicator size="small" color={theme.textPrimary} />
+                                ) : (
+                                    <>
+                                        <Ionicons name="person-remove-outline" size={20} color={theme.textPrimary} />
+                                        <Text style={[styles.followButtonText, { color: theme.textPrimary }]}>Unfollow</Text>
+                                    </>
+                                )}
+                            </Pressable>
+                        ) : (
+                            <Pressable
+                                style={({ pressed }) => [
+                                styles.followButton,
+                                { 
+                                    backgroundColor: Colors.primary,
+                                    opacity: pressed ? 0.8 : 1
+                                }
+                                ]}
+                                onPress={handleFollow}
+                                disabled={followActionLoading}
+                            >
+                                {followActionLoading ? (
+                                    <ActivityIndicator size="small" color="#FFFFFF" />
+                                ) : (
+                                    <>
+                                        <Ionicons name="person-add-outline" size={20} color="#FFFFFF" />
+                                        <Text style={styles.followButtonText}>Follow</Text>
+                                    </>
+                                )}
+                            </Pressable>
+                        )}
+                    </>
                 )}
 
                 {/* Vertical Action List */}
@@ -283,6 +420,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 10,
+        marginBottom: 20,
+        marginHorizontal: 16,
+    },
+    unfollowButton: {
+        borderWidth: 2,
+    },
+    followButtonSkeleton: {
+        alignItems: 'center',
+        justifyContent: 'center',
         paddingVertical: 14,
         paddingHorizontal: 24,
         borderRadius: 10,
