@@ -12,7 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#0f172a"
     },
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.Soniq",

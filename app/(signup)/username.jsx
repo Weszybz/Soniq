@@ -25,7 +25,7 @@ const Username = () => {
     const handleSubmit = async () => {
         try {
             await registerUsername(username)
-            router.push('/image')
+            router.push('/genre')
             console.log('Username:', username)
         } catch (error) {
             setError(error.message)
@@ -54,6 +54,7 @@ const Username = () => {
                 <ThemedTextInput
                     placeholder="Username"
                     keyboardType="twitter"
+                    autoCapitalize="none"
                     style={{textAlign:'center'}}
                     onChangeText={setUsername}
                     value={username}

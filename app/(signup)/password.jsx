@@ -56,6 +56,7 @@ const Password = () => {
                 <ThemedTextInput
                     placeholder="Password"
                     secureTextEntry
+                    autoCapitalize="none"
                     keyboardType="Password"
                     onChangeText={setPassword}
                     value={password}

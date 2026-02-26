@@ -56,6 +56,7 @@ const Email = () => {
                 <ThemedTextInput
                     placeholder="Email Address"
                     keyboardType="email-address"
+                    autoCapitalize="none"
                     onChangeText={setEmail}
                     value={email}
                 />

@@ -9,6 +9,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { storage, account, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, databases, DATABASE_ID, SNIPPETS_COLLECTION_ID } from '../../../lib/appwrite'
 import { Query } from 'react-native-appwrite';
 import { syncProfileImageToComments } from '../../../lib/comments'
+import { updateUserProfile } from '../../../lib/userService';
 
 // themed components
 import ThemedView from '../../../components/ThemedView';
@@ -194,7 +195,15 @@ const ProfileInfo = () => {
         .catch(err => {
           console.error('Comment sync error:', err);
         })
-      
+
+      // Sync profile image to user document in users collection (non-blocking)
+      updateUserProfile(current.$id, { profileImage: url })
+        .then(() => {
+          console.log('✅ User document synced with new profile image');
+        })
+        .catch(err => {
+          console.error('⚠️ User document sync error (non-fatal):', err);
+        });
 
       // Store globally so it shows in UI & after login
       setProfileImage(url)
