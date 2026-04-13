@@ -33,7 +33,7 @@ const ProfileInfo = () => {
 
   const router = useRouter()
   const { userId: routeUserId } = useLocalSearchParams()
-  const { user: currentUser, logout, refreshUser } = useUser()
+  const { user: currentUser, logout } = useUser()
 
   // Determine if viewing own profile or another user's profile
   const profileUserId = routeUserId || currentUser?.$id
@@ -42,6 +42,9 @@ const ProfileInfo = () => {
   // State for profile data when viewing another user
   const [profileData, setProfileData] = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
+
+  // Genres for own profile
+  const [ownGenres, setOwnGenres] = useState([])
 
   // Follow state
   const [followersCount, setFollowersCount] = useState(0)
@@ -99,7 +102,7 @@ const ProfileInfo = () => {
 
   // Fetch follow counts and follow status
   useEffect(() => {
-    const fetchFollowData = async ()=> {
+    const fetchFollowData = async () => {
       if (!profileUserId) return
 
       setFollowLoading(true)
@@ -132,7 +135,11 @@ const ProfileInfo = () => {
         if (!profileUserId) return
 
         if (isOwner) {
-          await refreshUser()
+          try {
+            const userData = await getUserProfileData(profileUserId)
+            setOwnGenres(Array.isArray(userData.genres) ? userData.genres : [])
+          } catch (error) {
+          }
         }
 
         try {
@@ -158,9 +165,7 @@ const ProfileInfo = () => {
   const displayData = isOwner ? currentUser : profileData
   const displayProfileImage = isOwner ? profileImage : profileData?.profileImage
 
-  const userGenres = isOwner
-    ? (currentUser?.prefs?.genres || [])
-    : (profileData?.genres || [])
+  const userGenres = isOwner ? ownGenres : (profileData?.genres || [])
 
   // Handle follow action
   const handleFollow = async () => {

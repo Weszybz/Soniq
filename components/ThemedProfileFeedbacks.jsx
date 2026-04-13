@@ -6,12 +6,9 @@ import ThemedText from "./ThemedText";
 import { Pressable, ScrollView, StyleSheet, View, ActivityIndicator, RefreshControl, Text, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import { formatDistanceToNow } from 'date-fns';
+import { useRouter } from 'expo-router';
 
-/**
- * Format timestamp to relative time (e.g. "2h ago")
- * @param {string} timestamp - ISO timestamp
- * @returns {string} Formatted time string
- */
+
 function formatRelativeTime(timestamp) {
     try {
         return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
@@ -20,11 +17,6 @@ function formatRelativeTime(timestamp) {
     }
 }
 
-/**
- * Get user initials from username
- * @param {string} username 
- * @returns {string} Initials (max 2 characters)
- */
 function getInitials(username) {
     if (!username) return '?';
     const parts = username.trim().split(' ');
@@ -34,10 +26,9 @@ function getInitials(username) {
     return username.slice(0, 2).toUpperCase();
 }
 
-/**
- * Single feedback card component
- */
-function FeedbackCard({ comment, snippetTitle, theme, isReply }) {
+const AVATAR_HIT_SLOP = { top: 6, bottom: 6, left: 6, right: 6 };
+
+function FeedbackCard({ comment, snippetTitle, theme, isReply, onAvatarPress }) {
     const hasProfileImage = comment.profileImage && comment.profileImage.trim() !== '';
 
     return (
@@ -54,16 +45,23 @@ function FeedbackCard({ comment, snippetTitle, theme, isReply }) {
             <View style={styles.feedbackContent}>
                 {/* Avatar */}
                 <View style={styles.avatarContainer}>
-                    {hasProfileImage ? (
-                        <Image
-                            source={{ uri: comment.profileImage }}
-                            style={styles.avatar}
-                        />
-                    ) : (
-                        <View style={[styles.avatarFallback, { backgroundColor: Colors.primary }]}>
-                            <Text style={styles.avatarInitials}>{getInitials(comment.username)}</Text>
-                        </View>
-                    )}
+                    <Pressable
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            onAvatarPress && onAvatarPress(comment);
+                        }}
+                        >
+                            {hasProfileImage ? (
+                                <Image
+                                    source={{ uri: comment.profileImage }}
+                                    style={styles.avatar}
+                                />
+                            ) : (
+                                <View style={[styles.avatarFallback, { backgroundColor: Colors.primary }]}>
+                                    <Text style={styles.avatarInitials}>{getInitials(comment.username)}</Text>
+                                </View>
+                            )}
+                    </Pressable>
                 </View>
 
                 {/* Main content */}
@@ -121,14 +119,17 @@ function FeedbackCard({ comment, snippetTitle, theme, isReply }) {
     );
 }
 
-/**
- * ThemedProfileFeedback - Show all comments made on this user's snippets
- * 
- * @param {string} profileUserId - The user whose profile we're viewing
- * @param {object} theme - Theme object
- * @param {boolean} isActive - Whether this tab is currently active
- */
 function ThemedProfileFeedback({ profileUserId, theme, isActive = true }) {
+    const router = useRouter();
+
+    const handleAvatarPress = (comment) => {
+        if (!comment?.userId) {
+            console.warn('No userId on comment', comment?.$id);
+            return;
+        }
+        router.push(`/profile?userId=${comment.userId}`);
+    };
+
     const [feedbackCache, setFeedbackCache] = useState({});
     const [snippetMapCache, setSnippetMapCache] = useState({});
     const [loading, setLoading] = useState(false);
@@ -323,6 +324,7 @@ function ThemedProfileFeedback({ profileUserId, theme, isActive = true }) {
                         snippetTitle={snippetInfo.title}
                         theme={theme}
                         isReply={isReply}
+                        onAvatarPress={handleAvatarPress}
                     />
                 );
             })}
