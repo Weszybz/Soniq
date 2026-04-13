@@ -21,6 +21,7 @@ export function UserProvider({ children }) {
   const [pendingBirthday, setPendingBirthday] = useState(null)
   const [pendingUsername, setPendingUsername] = useState(null)
   const [pendingProfileImage, setPendingProfileImage] = useState(null)
+	const [pendingGenres, setPendingGenres] = useState([])
 
   function makeProfileImageUrl(fileId) {
     return `${APPWRITE_ENDPOINT}/storage/buckets/${PROFILE_BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}`
@@ -97,6 +98,10 @@ export function UserProvider({ children }) {
 		setPendingBirthday(birthday)
 	}
 
+	function registerGenres(genres) {
+		setPendingGenres(Array.isArray(genres) ? genres : [])
+	}
+
 	async function registerUsername(username) {
 		const u = (username || "").trim()
 
@@ -106,7 +111,7 @@ export function UserProvider({ children }) {
 		setPendingUsername(u)
 	}
 
-	async function registerImage(profileImageUrl) {
+	async function registerImage(profileImageUrl, genres) {
 		const url = profileImageUrl || null
 		setPendingProfileImage(url)
 
@@ -130,13 +135,14 @@ export function UserProvider({ children }) {
 				birthday: pendingBirthday,
 				username: pendingUsername,
 				profileImage: url,
+				genres: Array.isArray(genres) ? genres : [],
 			})
 		} catch (error) {
 			throw Error(error.message)
 		}
 	}
 
-	async function register({ email, password, firstName, lastName, birthday, username, profileImage }) {
+	async function register({ email, password, firstName, lastName, birthday, username, profileImage, genres }) {
 		try {
 			const fullName = `${firstName || ""} ${lastName || ""}`.trim() || undefined
 
@@ -148,6 +154,7 @@ export function UserProvider({ children }) {
 				birthday,
 				username,
 				profileImage,
+				genres: genres || [],
 			})
 			const updatedUser = await account.get()
 			setUser(updatedUser)
@@ -159,6 +166,7 @@ export function UserProvider({ children }) {
 					username: username,
 					name: fullName || username,
 					profileImage: profileImage,
+					genres: genres || []
 				});
 			} catch (err) {
 				console.warn('Failed to ensure user document on registration:', err);
@@ -166,6 +174,15 @@ export function UserProvider({ children }) {
 
 		} catch (error) {
 			throw Error(error.message)
+		}
+	}
+
+	async function refreshUser() {
+		try {
+			const response = await account.get()
+			setUser(response)
+			return response
+		} catch  {
 		}
 	}
 
@@ -239,6 +256,8 @@ export function UserProvider({ children }) {
 			registerBirthday, 
 			registerUsername, 
 			registerImage,
+			registerGenres,
+			refreshUser,
 			logout, 
 			authChecked,
 			pendingEmail,

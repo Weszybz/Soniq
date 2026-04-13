@@ -24,19 +24,14 @@ const Images = () => {
 
     const { profileImage, setProfileImage } = useProfile();
 
-    const { user, pendingEmail, registerImage } = useUser()
+    const { pendingEmail } = useUser()
 
     console.log("Pending Email:", pendingEmail)
 
     const [error, setError] = useState(null)
 
     const handleSubmit = async () => {
-        try {
-            await registerImage(profileImage)
-            console.log('Profile Image URL:', profileImage)
-        } catch (error) {
-            setError(error.message)
-        }
+        router.push('/genres')
     }
 
     function makeProfileImageUrl(fileId) {

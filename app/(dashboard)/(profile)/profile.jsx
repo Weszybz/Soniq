@@ -33,7 +33,7 @@ const ProfileInfo = () => {
 
   const router = useRouter()
   const { userId: routeUserId } = useLocalSearchParams()
-  const { user: currentUser, logout } = useUser()
+  const { user: currentUser, logout, refreshUser } = useUser()
 
   // Determine if viewing own profile or another user's profile
   const profileUserId = routeUserId || currentUser?.$id
@@ -80,7 +80,8 @@ const ProfileInfo = () => {
         setProfileData({
           username: userData.username,
           profileImage: userData.profileImage,
-          name: userData.username,
+          name: userData.name || userData.username,
+          genres: userData.genres || []
         })
       } catch (error) {
         console.error("Failed to fetch profile data:", error)
@@ -127,16 +128,18 @@ const ProfileInfo = () => {
   // Refresh follow counts when screen comes into focus 
   useFocusEffect(
     useCallback(() => {
-      const refreshFollowCounts = async () => {
+      const refreshOnFocus = async () => {
         if (!profileUserId) return
 
+        if (isOwner) {
+          await refreshUser()
+        }
+
         try {
-          // Fetch follow counts
           const counts = await getFollowCounts(profileUserId)
           setFollowersCount(counts.followers)
           setFollowingCount(counts.following)
-
-          // Check if current user is following this profile (only if not owner)
+          
           if (!isOwner && currentUser?.$id) {
             const following = await isFollowing(currentUser.$id, profileUserId)
             setIsFollowingUser(following)
@@ -144,16 +147,20 @@ const ProfileInfo = () => {
             setIsFollowingUser(false)
           }
         } catch (error) {
-          console.error('Failed to refresh follow counts', error)
+          console.error('Failed to refresh profile data:', error)
         } 
       }
-      refreshFollowCounts()
+      refreshOnFocus()
     }, [profileUserId, isOwner, currentUser?.$id])
   )
 
   // Get display data - either current user or fetched profiel data
   const displayData = isOwner ? currentUser : profileData
   const displayProfileImage = isOwner ? profileImage : profileData?.profileImage
+
+  const userGenres = isOwner
+    ? (currentUser?.prefs?.genres || [])
+    : (profileData?.genres || [])
 
   // Handle follow action
   const handleFollow = async () => {
@@ -444,7 +451,11 @@ const ProfileInfo = () => {
       )}
 
       <ThemedText style={{ fontSize: 16, fontWeight: '600'}}>{displayData?.name || 'User'}</ThemedText>
-      <ThemedText style={{ fontSize: 16, fontWeight: '600', color: Colors.primary}}>#Lofi #HipHop</ThemedText>
+      {userGenres.length > 0 && (
+        <ThemedText style={{ fontSize: 16, fontWeight: '600', color: Colors.primary}}>
+          {userGenres.map(g => `#${g}`).join('  ')}
+        </ThemedText>
+      )}
       
       <Spacer />
       
