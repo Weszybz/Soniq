@@ -22,6 +22,7 @@ import ThemedProfileScroller from '../../../components/ThemedProfileScroller';
 import ThemedProfileSnippets from '../../../components/ThemedProfileSnippets';
 import ThemedProfileFeedback from '../../../components/ThemedProfileFeedbacks';
 import ThemedProfileLikes from '../../../components/ThemedProfileLikes';
+import ThemedProfileCollaborations from '../../../components/ThemedProfileCollaborations';
 
 const ProfileInfo = () => {
   const colorScheme = useColorScheme()
@@ -500,17 +501,12 @@ const ProfileInfo = () => {
       )}
 
       {/* Collaborations Tab - Available to all */}
-      {activeTab === 'Collaborations' && (
-        <View style={styles.tabPlaceholder}>
-          <View style={styles.placeholderContent}>
-            <Ionicons name="people-outline" size={48} color={theme.textSecondary} />
-            <ThemedText style={styles.placeholderTitle}>No collaborations yet</ThemedText>
-            <ThemedText style={[styles.placeholderSubtext, { color: theme.textSecondary }]}>
-              Collaborative snippets will appear here
-            </ThemedText>
-          </View>
-        </View>
-      )}
+      <ThemedProfileCollaborations
+        profileUserId={profileUserId}
+        currentUser={currentUser}
+        theme={theme}
+        isActive={activeTab === 'Collaborations'}
+      />
 
       {/* Reposts Tab - Available to all */}
       {activeTab === 'Reposts' && (

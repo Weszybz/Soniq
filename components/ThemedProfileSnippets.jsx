@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { listSnippetsByUser } from "../lib/snippets";
+import { listSnippetsByOwnerOrCollaborator } from "../lib/snippets";
 import { Audio } from "expo-av";
 import { Colors } from "../constants/Colors"
 import ThemedText from "./ThemedText";
@@ -14,7 +14,6 @@ function ThemedProfileSnippets({ profileUserId, currentUser, theme, isActive = t
     const [snippetsError, setSnippetsError] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Use ref to track if we're currently fetching to prevent duplicate fetches
     const isFetchingRef = useRef(false);
     const hasFetchedRef = useRef({});
 
@@ -49,15 +48,9 @@ function ThemedProfileSnippets({ profileUserId, currentUser, theme, isActive = t
                 setSnippetsLoading(true);
                 setSnippetsError(null);
 
-                const data = await listSnippetsByUser(profileUserId);
+                const data = await listSnippetsByOwnerOrCollaborator(profileUserId);
 
-                // Store in cache
-                setSnippetsCache(prev => ({
-                    ...prev,
-                    [profileUserId]: data
-                }));
-
-                // Mark as fetched
+                setSnippetsCache(prev => ({ ...prev, [profileUserId]: data }));
                 hasFetchedRef.current[profileUserId] = true;
             } catch (err) {
                 console.error("Failed to fetch user snippets:", err);
@@ -83,13 +76,10 @@ function ThemedProfileSnippets({ profileUserId, currentUser, theme, isActive = t
         try {
             setSnippetsError(null);
 
-            const data = await listSnippetsByUser(profileUserId);
+            const data = await listSnippetsByOwnerOrCollaborator(profileUserId);
 
             // Update cache
-            setSnippetsCache(prev => ({
-                ...prev,
-                [profileUserId]: data
-            }));
+            setSnippetsCache(prev => ({ ...prev, [profileUserId]: data }));
         } catch (err) {
             console.error("Failed to refresh snippets:", err);
             setSnippetsError(err?.message || "Failed to refresh snippets");

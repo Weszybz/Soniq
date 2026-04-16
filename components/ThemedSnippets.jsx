@@ -273,10 +273,22 @@ function ThemedSnippet({ snippet, currentUser, theme,
           )}
         </View>
 
-        {/* Title */}
-        <Text style={[styles.title, { color: theme.textPrimary }]}>
-          {snippetData.title}
-        </Text>
+        {/* Title + optional collaborator */}
+        <View style={styles.titleBlock}>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>
+            {snippetData.title}
+          </Text>
+          {!!snippetData.collaboratorUsername && (
+            <Pressable
+              onPress={() => router.push(`/profile?userId=${snippetData.collaboratorUserId}`)}
+              style={({ pressed }) => pressed && styles.collaboratorPressed}
+            >
+              <Text style={[styles.collaborator, { color: theme.textSecondary }]}>
+                ft. @{snippetData.collaboratorUsername}
+              </Text>
+            </Pressable>
+          )}
+        </View>
 
         {/* Waveform Player */}
         <View style={styles.waveform}>
@@ -394,10 +406,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 14,
   },
+  titleBlock: {
+    gap: 2,
+  },
   title: {
     fontFamily: 'inter',
     fontWeight: '600',
     fontSize: 20,
+  },
+  collaborator: {
+    fontFamily: 'inter',
+    fontWeight: '500',
+    fontSize: 13,
+  },
+  collaboratorPressed: {
+    opacity: 0.5,
   },
   waveform: {
   },
