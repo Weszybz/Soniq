@@ -27,6 +27,7 @@ import ThemedComments from '../../components/ThemedComments';
 import ThemedOptions from '../../components/ThemedOptions';
 import ThemedSnippet from '../../components/ThemedSnippets';
 import ThemedSearchBar from '../../components/ThemedSearchBar';
+import ThemedShare from '../../components/ThemedShare';
 
 
 
@@ -65,7 +66,9 @@ const Home = () => {
 		}
 	};
 
-	const { bottomSheetRef, setContent } = useBottomSheet();
+	const { bottomSheetRef, setContent, expandLarge } = useBottomSheet();
+
+	
 	const handleCardOptions = (snippet) => {
 		setContent(
 			<ThemedOptions
@@ -74,13 +77,26 @@ const Home = () => {
 				theme={theme}
 				user={user}
 				onClose={() => bottomSheetRef.current?.close()}
+				onShare={handleShareSnippet}
 			/>
 		);
 		bottomSheetRef.current?.expand();
 	}; 
 
-	// const bottomSheetRef = useBottomSheet()
-	// const handleCardOptions = () => bottomSheetRef.current?.expand(
+	const handleShareSnippet = (snippet) => {
+		setContent(
+			<ThemedShare
+				key={`share-${snippet.$id}-${Date.now()}`}
+				snippet={snippet}
+				currentUser={user}
+				theme={theme}
+				onClose={() => bottomSheetRef.current?.close()}
+			/>
+		);
+		expandLarge();
+	};
+
+
 	const handleCardOptionsClose = () => bottomSheetRef.current?.close()
 
 	const soundRef = useRef(null);

@@ -6,12 +6,13 @@ import { useMemo, useCallback, forwardRef, useImperativeHandle, useRef } from 'r
 const ThemedBottomSheet = forwardRef(({ children, ...rest }, ref) => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
-  const snapPoints = useMemo(() => ['40%']);
+  const snapPoints = useMemo(() => ['50%', '70%']);
 
   const bottomSheetRef = useRef(null);
 
   useImperativeHandle(ref, () => ({
-    expand: () => bottomSheetRef.current?.snapToIndex(1),
+    expand: () => bottomSheetRef.current?.snapToIndex(0),
+    expandLarge: () => bottomSheetRef.current?.snapToIndex(1),
     close: () => bottomSheetRef.current?.close(),
   }));
 

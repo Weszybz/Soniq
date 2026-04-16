@@ -8,7 +8,11 @@ export const BottomSheetProvider = ({ children }) => {
   const [content, setContent] = useState(null);
 
   return (
-    <BottomSheetRefContext.Provider value={{ bottomSheetRef, setContent }}>
+    <BottomSheetRefContext.Provider value={{ bottomSheetRef, setContent,
+      expand: () => bottomSheetRef.current?.snapToIndex(0),
+      expandLarge: () => bottomSheetRef.current?.snapToIndex(1),
+      close: () => bottomSheetRef.current?.close(),
+    }}>
       {children}
       <ThemedBottomSheet ref={bottomSheetRef}>
         {content}

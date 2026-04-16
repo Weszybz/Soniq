@@ -5,6 +5,7 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { Colors } from '../constants/Colors';
+import { useRouter } from 'expo-router';
 import { updateDownloadPermission, deleteMessage } from '../lib/messageService';
 import ThemedDownloadPermission from './ThemedDownloadPermission';
 
@@ -32,12 +33,7 @@ const MessageText = ({ content, textColor, isMine }) => {
         part.isTimestamp ? (
           <Text
             key={i}
-            style={{
-              color: isMine ? '#fff' : Colors.primary,
-              fontWeight: '700',
-              backgroundColor: isMine ? 'rgba(255,255,255,0.2)' : Colors.primary + '22',
-              borderRadius: 4,
-            }}
+            style={{ color: isMine ? '#fff' : Colors.primary, fontWeight: '700', backgroundColor: isMine ? 'rgba(255,255,255,0.2)' : Colors.primary + '22', borderRadius: 4 }}
           >
             {part.text}
           </Text>
@@ -120,7 +116,6 @@ const AudioPlayer = ({ fileUrl, theme, isMine }) => {
       </Pressable>
 
       <View style={styles.waveContainer}>
-        {/* Simple progress bar instead of waveform */}
         <View style={[styles.progressTrack, { backgroundColor: bubbleAccent }]}>
           <View style={[ styles.progressFill, { width: `${progress * 100}%`, backgroundColor: isMine ? 'rgba(255,255,255,0.85)' : Colors.primary}]}/>
         </View>
@@ -129,6 +124,71 @@ const AudioPlayer = ({ fileUrl, theme, isMine }) => {
         </Text>
       </View>
     </View>
+  );
+};
+
+const SnippetCard = ({ snippetData, isMine, theme }) => {
+  const router = useRouter();
+
+  const handlePress = () => {
+    if (snippetData?.ownerId) {
+      router.push(`/profile?userId=${snippetData.ownerId}`);
+    }
+  };
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.snippetCard,
+        {
+          backgroundColor: isMine ? 'rgba(255,255,255,0.15)' : theme.uiBackground,
+          opacity: pressed ? 0.8 : 1,
+        },
+      ]}
+      onPress={handlePress}
+    >
+      <View style={styles.snippetCardHeader}>
+        {snippetData?.profileImage ? (
+          <Image source={{ uri: snippetData.profileImage }} style={styles.snippetAvatar} />
+        ) : (
+          <View style={[styles.snippetAvatar, styles.snippetAvatarFallback, { backgroundColor: isMine ? 'rgba(255,255,255,0.2)' : theme.cardBackground }]}>
+            <Ionicons name="person" size={12} color={isMine ? 'rgba(255,255,255,0.7)' : theme.textSecondary} />
+          </View>
+        )}
+        <View style={{ flex: 1 }}>
+          <Text
+            style={[styles.snippetUsername, { color: isMine ? 'rgba(255,255,255,0.85)' : theme.textSecondary }]}
+            numberOfLines={1}
+          >
+            {snippetData?.username || 'Unknown'}
+          </Text>
+          <View style={styles.snippetGenreRow}>
+            <View style={styles.snippetGenreDot} />
+            <Text
+              style={[styles.snippetGenre, { color: isMine ? 'rgba(255,255,255,0.7)' : theme.textSecondary }]}
+              numberOfLines={1}
+            >
+              {snippetData?.genre || ''}
+            </Text>
+          </View>
+        </View>
+        <Ionicons name="musical-notes" size={16} color={isMine ? 'rgba(255,255,255,0.7)' : '#06B6D4'} />
+      </View>
+
+      <Text
+        style={[styles.snippetTitle, { color: isMine ? '#fff' : theme.textPrimary }]}
+        numberOfLines={2}
+      >
+        {snippetData?.title || 'Untitled'}
+      </Text>
+
+      <View style={styles.snippetFooter}>
+        <Ionicons name="play-circle-outline" size={14} color={isMine ? 'rgba(255,255,255,0.6)' : theme.textSecondary} />
+        <Text style={[styles.snippetFooterText, { color: isMine ? 'rgba(255,255,255,0.6)' : theme.textSecondary }]}>
+          Tap to view profile
+        </Text>
+      </View>
+    </Pressable>
   );
 };
 
@@ -142,6 +202,10 @@ const ThemedMessageBubble = ({ message, isMine, recipientUsername, conversationI
   const [updatingPermission, setUpdatingPermission] = useState(false);
 
   const isAudio = message.type === 'audio';
+  const isSnippet = message.type === 'snippet';
+  const snippetData = isSnippet ? (() => {
+    try { return JSON.parse(message.content); } catch { return null; }
+  })() : null;
 
   const handleLongPress = () => {
     if (isMine) setOptionsVisible(true);
@@ -298,7 +362,11 @@ const ThemedMessageBubble = ({ message, isMine, recipientUsername, conversationI
               </>
             )}
 
-            {message.content ? (
+            {isSnippet && (
+              <SnippetCard snippetData={snippetData} isMine={isMine} theme={theme} />
+            )}
+
+            {!isSnippet && message.content ? (
               <MessageText content={message.content} textColor={textColor} isMine={isMine} />
             ) : null}
           </View>
@@ -516,5 +584,61 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'inter',
     fontWeight: '500',
+  },
+  snippetCard: {
+    borderRadius: 10,
+    padding: 10,
+    gap: 6,
+    minWidth: 200,
+  },
+  snippetCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  snippetAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  snippetAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  snippetGenreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  snippetGenreDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#06B6D4',
+  },
+  snippetUsername: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: 'inter',
+  },
+  snippetGenre: {
+    fontSize: 11,
+    fontFamily: 'inter',
+  },
+  snippetTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: 'inter',
+    lineHeight: 18,
+  },
+  snippetFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  snippetFooterText: {
+    fontSize: 11,
+    fontFamily: 'inter',
   },
 });

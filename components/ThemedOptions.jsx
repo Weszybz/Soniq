@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { isFollowing, followUser, unfollowUser } from '../lib/followService';
 import { Colors } from "../constants/Colors";
 
-const ThemedOptions = ({ snippet, theme, user, onClose }) => {
+const ThemedOptions = ({ snippet, theme, user, onClose, onShare }) => {
     const isOwner = snippet?.ownerId === user?.$id;
 
     // Follow state - always start fresh
@@ -116,15 +116,15 @@ const ThemedOptions = ({ snippet, theme, user, onClose }) => {
                 onClose?.();
             }
         },
-        {
-            id: 'stats',
-            label: 'View Stats / Analytics',
-            icon: 'stats-chart-outline',
-            onPress: () => {
-                console.log('View stats for snippet:', snippet.$id);
-                onClose?.();
-            }
-        },
+        // {
+        //     id: 'stats',
+        //     label: 'View Stats / Analytics',
+        //     icon: 'stats-chart-outline',
+        //     onPress: () => {
+        //         console.log('View stats for snippet:', snippet.$id);
+        //         onClose?.();
+        //     }
+        // },
         {
             id: 'delete',
             label: 'Delete Snippet',
@@ -153,6 +153,7 @@ const ThemedOptions = ({ snippet, theme, user, onClose }) => {
             onPress: () => {
                 console.log('Share snippet:', snippet.$id);
                 onClose?.();
+                onShare?.(snippet);
             }
         },
         {
