@@ -5,7 +5,9 @@ import { useState, useEffect, useCallback, useContext } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../../../contexts/UserContext';
+import { useUnread } from '../../../contexts/UnreadContext';
 import { listConversations } from '../../../lib/messageService';
 
 // themed components
@@ -23,10 +25,19 @@ const Messages = () => {
   const theme = Colors[colorScheme] ?? Colors.light
   const router = useRouter();
   const { user } = useContext(UserContext);
+  const { setUnreadCount } = useUnread();
 
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [readTimestamps, setReadTimestamps] = useState({});
+
+  const loadReadTimestamps = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('@soniq:readTimestamps');
+      setReadTimestamps(stored ? JSON.parse(stored) : {});
+    } catch (_) {}
+  }, []);
 
    const fetchConversations = useCallback(async () => {
     if (!user?.$id) return;
@@ -43,7 +54,8 @@ const Messages = () => {
 
   useEffect(() => {
     fetchConversations();
-  }, [fetchConversations]);
+    loadReadTimestamps();
+  }, [fetchConversations, loadReadTimestamps]);
 
   useEffect(() => {
     const interval = setInterval(fetchConversations, POLL_INTERVAL);
@@ -53,8 +65,23 @@ const Messages = () => {
   useFocusEffect(
     useCallback(() => {
       fetchConversations();
-    }, [fetchConversations])
+      loadReadTimestamps();
+    }, [fetchConversations, loadReadTimestamps])
   );
+
+  const isConvoUnread = useCallback(
+    (convo) => {
+      if (!convo.lastSenderId || convo.lastSenderId === user?.$id) return false;
+      const lastRead = readTimestamps[convo.$id];
+      if (!lastRead) return true;
+      return convo.lastMessageAt > lastRead;
+    },
+    [readTimestamps, user?.$id]
+  );
+
+  useEffect(() => {
+    setUnreadCount(conversations.filter(isConvoUnread).length);
+  }, [conversations, isConvoUnread, setUnreadCount]);
 
   const handleConversationPress = ({ conversation, otherUserId, otherUsername, otherImage }) => {
     router.push({
@@ -72,6 +99,7 @@ const Messages = () => {
     <ThemedConversationCard
       conversation={item}
       currentUserId={user?.$id}
+      isUnread={isConvoUnread(item)}
       onPress={handleConversationPress}
     />
   );
@@ -85,7 +113,20 @@ const Messages = () => {
   return (
     <ThemedView style={styles.container} safe>
       <View style={[styles.header, { borderBottomColor: theme.divider }]}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>Messages</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: theme.textPrimary }]}>Messages</Text>
+          {(() => {
+            const unreadCount = conversations.filter(isConvoUnread).length;
+            if (unreadCount === 0) return null;
+            return (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            );
+          })()}
+        </View>
       </View>
 
       {loading ? (
@@ -133,6 +174,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
+    fontWeight: '700',
+    fontFamily: 'inter',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  unreadBadge: {
+    backgroundColor: '#60a5fa',
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 7,
+  },
+  unreadBadgeText: {
+    color: '#fff',
+    fontSize: 13,
     fontWeight: '700',
     fontFamily: 'inter',
   },

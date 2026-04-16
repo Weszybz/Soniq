@@ -2,6 +2,8 @@ import { StyleSheet, View, Pressable, useColorScheme, Text } from 'react-native'
 import { useRouter, usePathname } from 'expo-router';
 import { Colors } from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
+import { useUnread } from '../contexts/UnreadContext';
+
 
 const ThemedNavBar = ({ style, ...props }) => {
   const colorScheme = useColorScheme();
@@ -9,6 +11,7 @@ const ThemedNavBar = ({ style, ...props }) => {
 
   const router = useRouter();
   const pathname = usePathname();
+  const { unreadCount } = useUnread();
 
   if (pathname.includes('chat')) return null;
 
@@ -30,18 +33,22 @@ const ThemedNavBar = ({ style, ...props }) => {
     >
       {items.map((item) => {
         const active = pathname === item.route;
+        const showDot = item.route === '/messages' && unreadCount > 0 && !active;
         return (
           <Pressable
             key={item.route}
             onPress={() => router.push(item.route)}
             style={styles.item}
           >
-            <Ionicons
-              name={active ? item.iconFill : item.icon}
-              size={24}
-              color={active ? theme.iconColorFocused : theme.iconColor}
-              style={{}}
-            />
+            <View style={styles.iconWrap}>
+              <Ionicons
+                name={active ? item.iconFill : item.icon}
+                size={24}
+                color={active ? theme.iconColorFocused : theme.iconColor}
+                style={{}}
+              />
+              {showDot && <View style={styles.dot} />}
+            </View>
             <Text
               style={[
                 styles.label,
@@ -79,5 +86,17 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  iconWrap: {
+    position: 'relative',
+  },
+  dot: {
+    position: 'absolute',
+    top: -1,
+    right: -3,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#60a5fa',
   },
 });

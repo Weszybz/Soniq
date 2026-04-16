@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../../../contexts/UserContext';
 import { listMessages, sendTextMessage, sendAudioMessage, pickAudioFile } from '../../../lib/messageService';
 import ThemedMessageBubble from '../../../components/ThemedMessageBubble';
@@ -57,7 +58,16 @@ const Chat = () => {
   useFocusEffect(
     useCallback(() => {
       fetchMessages();
-    }, [fetchMessages])
+      if (conversationId) {
+        AsyncStorage.getItem('@soniq:readTimestamps')
+          .then((stored) => {
+            const timestamps = stored ? JSON.parse(stored) : {};
+            timestamps[conversationId] = new Date().toISOString();
+            return AsyncStorage.setItem('@soniq:readTimestamps', JSON.stringify(timestamps));
+          })
+          .catch(() => {});
+      }
+    }, [fetchMessages, conversationId])
   );
 
   useEffect(() => {

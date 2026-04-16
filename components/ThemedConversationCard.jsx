@@ -2,7 +2,7 @@ import { StyleSheet, View, Text, Pressable, Image, useColorScheme } from 'react-
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 
-const ThemedConversationCard = ({ conversation, currentUserId, onPress }) => {
+const ThemedConversationCard = ({ conversation, currentUserId, isUnread = false, onPress }) => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
 
@@ -30,9 +30,6 @@ const ThemedConversationCard = ({ conversation, currentUserId, onPress }) => {
     }
   })();
 
-  const hasUnread =
-    conversation.unreadCount > 0 && conversation.lastSenderId !== currentUserId;
-
   return (
     <Pressable
       style={({ pressed }) => [
@@ -58,7 +55,7 @@ const ThemedConversationCard = ({ conversation, currentUserId, onPress }) => {
           <Text style={[styles.username, { color: theme.textPrimary }]} numberOfLines={1}>
             {otherUsername}
           </Text>
-          <Text style={[styles.time, { color: hasUnread ? Colors.primary : theme.textSecondary }]}>
+          <Text style={[styles.time, { color: isUnread ? '#60a5fa' : theme.textSecondary }]}>
             {timeStr}
           </Text>
         </View>
@@ -68,8 +65,8 @@ const ThemedConversationCard = ({ conversation, currentUserId, onPress }) => {
             style={[
               styles.preview,
               {
-                color: hasUnread ? theme.textPrimary : theme.textSecondary,
-                fontWeight: hasUnread ? '600' : '400',
+                color: isUnread ? theme.textPrimary : theme.textSecondary,
+                fontWeight: isUnread ? '600' : '400',
                 flex: 1,
               },
             ]}
@@ -84,13 +81,7 @@ const ThemedConversationCard = ({ conversation, currentUserId, onPress }) => {
             )}
           </Text>
 
-          {hasUnread && (
-            <View style={[styles.badge, { backgroundColor: Colors.primary }]}>
-              <Text style={styles.badgeText}>
-                {conversation.unreadCount > 9 ? '9+' : conversation.unreadCount}
-              </Text>
-            </View>
-          )}
+          {isUnread && <View style={styles.unreadDot} />}
         </View>
       </View>
     </Pressable>
@@ -148,18 +139,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'inter',
   },
-  badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 5,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#fff',
-    fontFamily: 'inter',
+  unreadDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#60a5fa',
   },
 });
