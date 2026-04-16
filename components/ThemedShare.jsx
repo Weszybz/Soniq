@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, Pressable, ScrollView, SectionListComponent, ActivityIndicator, FlatList } from "react-native";
+import { StyleSheet, View, Text, Pressable, ScrollView, SectionListComponent, ActivityIndicator, FlatList, Image } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect, useCallback } from "react";
 import { Colors } from "../constants/Colors";

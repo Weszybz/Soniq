@@ -9,8 +9,8 @@ export const BottomSheetProvider = ({ children }) => {
 
   return (
     <BottomSheetRefContext.Provider value={{ bottomSheetRef, setContent,
-      expand: () => bottomSheetRef.current?.snapToIndex(0),
-      expandLarge: () => bottomSheetRef.current?.snapToIndex(1),
+      expand: () => bottomSheetRef.current?.expand(),
+      expandLarge: () => bottomSheetRef.current?.expandLarge(),
       close: () => bottomSheetRef.current?.close(),
     }}>
       {children}
