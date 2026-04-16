@@ -22,6 +22,7 @@
     "expo-image-picker": "~17.0.8",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.14",
+    "expo-sharing": "~14.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.8",
     "ffmpeg-kit-react-native": "^6.0.2",

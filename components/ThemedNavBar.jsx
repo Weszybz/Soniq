@@ -10,6 +10,8 @@ const ThemedNavBar = ({ style, ...props }) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  if (pathname.includes('chat')) return null;
+
   const items = [
     { label: 'Home', icon: 'home-outline', iconFill: 'home', route: '/home' },
     { label: 'Discover', icon: 'search-outline', iconFill: 'search', route: '/discover' },

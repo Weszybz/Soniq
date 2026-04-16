@@ -11,6 +11,7 @@ import { storage, account, databases, ID, PROFILE_BUCKET_ID, APPWRITE_ENDPOINT, 
 import { Ionicons } from '@expo/vector-icons';
 import { getFollowCounts, isFollowing, followUser, unfollowUser } from '../../../lib/followService';
 import { getUserProfileData } from '../../../lib/userService';
+import { getOrCreateConversation } from '../../../lib/messageService';
 
 // themed components
 import ThemedView from '../../../components/ThemedView';
@@ -221,10 +222,38 @@ const ProfileInfo = () => {
   }
 
   // Handle message action
-  const handleMessage = () => {
-    alert('Messaging feature coming soon!')
-  }
+  const handleMessage = async () => {
+    if (!currentUser?.$id || !profileUserId) return;
+    try {
+      const myUsername = currentUser.prefs?.username || currentUser.name || 'User';
+      const myImage = currentUser.prefs?.profileImage || '';
+      const otherUsername = profileData?.username || profileData?.name || 'User';
+      const otherImage = profileData?.profileImage || '';
 
+      const conversation = await getOrCreateConversation(
+        currentUser.$id,
+        profileUserId,
+        myUsername,
+        myImage,
+        otherUsername,
+        otherImage
+      );
+
+      router.push({
+        pathname: '/(dashboard)/chat',
+        params: {
+          conversationId: conversation.$id,
+          otherUserId: profileUserId,
+          otherUsername,
+          otherImage,
+        },
+      });
+    } catch (err) {
+      console.error('Failed to open conversation:', err);
+      alert('Could not open conversation. Please try again.');
+    }
+  }
+  
   // Handle tab changes
   const handleTabChange = (index, value) => {
     setActiveTabIndex(index);
