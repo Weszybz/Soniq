@@ -16,6 +16,64 @@ import ThemedDownloadPermission from '../../../components/ThemedDownloadPermissi
 
 const POLL_INTERVAL = 5000;
 
+const getDateLabel = (date) => {
+  const now = new Date();
+  const d = new Date(date);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diff = Math.round((today - msgDay) / 86400000);
+
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Yesterday';
+  if (diff < 7) return d.toLocaleDateString([], { weekday: 'long' });
+  return d.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
+};
+
+const buildListData = (messages) => {
+  const result = [];
+  let lastDateKey = null;
+  for (const msg of messages) {
+    try {
+      const d = new Date(msg.createdAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (key !== lastDateKey) {
+        result.push({ $id: `__date__${key}`, type: '__dateSeparator', label: getDateLabel(d) });
+        lastDateKey = key;
+      }
+    } catch {}
+    result.push(msg);
+  }
+  return result;
+};
+
+const DateSeparator = ({ label, theme }) => (
+  <View style={separatorStyles.row}>
+    <View style={[separatorStyles.line, { backgroundColor: theme.divider }]} />
+    <Text style={[separatorStyles.label, { color: theme.textSecondary }]}>{label}</Text>
+    <View style={[separatorStyles.line, { backgroundColor: theme.divider }]} />
+  </View>
+);
+
+const separatorStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 12,
+    paddingHorizontal: 16,
+    gap: 10,
+  },
+  line: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  label: {
+    fontSize: 11,
+    fontFamily: 'inter',
+    fontWeight: '500',
+    letterSpacing: 0.4,
+  },
+});
+
 const Chat = () => {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme] ?? Colors.light;
@@ -141,16 +199,23 @@ const Chat = () => {
     setMessages((prev) => prev.filter((m) => m.$id !== messageId));
   };
 
-  const renderMessage = ({ item }) => (
-    <ThemedMessageBubble
-      message={item}
-      isMine={item.senderId === user?.$id}
-      recipientUsername={otherUsername}
-      conversationId={conversationId}
-      onPermissionChange={handlePermissionChange}
-      onMessageDeleted={handleMessageDeleted}
-    />
-  );
+  const listData = buildListData(messages);
+
+  const renderMessage = ({ item }) => {
+    if (item.type === '__dateSeparator') {
+      return <DateSeparator label={item.label} theme={theme} />;
+    }
+    return (
+      <ThemedMessageBubble
+        message={item}
+        isMine={item.senderId === user?.$id}
+        recipientUsername={otherUsername}
+        conversationId={conversationId}
+        onPermissionChange={handlePermissionChange}
+        onMessageDeleted={handleMessageDeleted}
+      />
+    );
+  };
 
   const keyExtractor = (item) => item.$id;
 
@@ -198,7 +263,7 @@ const Chat = () => {
       ) : (
         <FlatList
           ref={flatListRef}
-          data={messages}
+          data={listData}
           renderItem={renderMessage}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
