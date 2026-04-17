@@ -6,7 +6,7 @@ import { incrementSnippetCommentsCount } from "../lib/snippets";
 import { avatar } from "../lib/appwrite";
 import { Colors } from "../constants/Colors";
 
-const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, isActive = false, user, profileImage, onCommentAdded, onCommentsUpdate }) => {
+const ThemedComments = ({ snippetId, initialComments = [], loading = false, theme, soundRef, position, isActive = false, user, profileImage, onCommentAdded, onCommentsUpdate, snippetOwnerId = null, snippetTitle = null }) => {
   const [comments, setComments] = useState(initialComments);
   const [textInput, setTextInput] = useState("");
   const [replyTo, setReplyTo] = useState(null);
@@ -87,6 +87,8 @@ const ThemedComments = ({ snippetId, initialComments = [], loading = false, them
         content: inputValue,
         parentCommentId: replyToValue ? replyToValue.id : null,
         timestamp: Math.floor(position / 1000),
+        snippetOwnerId,
+        snippetTitle,
       });
 
       await incrementSnippetCommentsCount(snippetId, 1);

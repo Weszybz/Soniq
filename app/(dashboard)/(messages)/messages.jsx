@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../../../contexts/UserContext';
 import { useUnread } from '../../../contexts/UnreadContext';
 import { listConversations } from '../../../lib/messageService';
+import { markConversationNotificationsRead } from '../../../lib/notificationService';
 
 // themed components
 import ThemedView from '../../../components/ThemedView';

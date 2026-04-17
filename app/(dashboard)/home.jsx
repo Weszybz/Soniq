@@ -7,6 +7,7 @@ import { useUser } from '../../hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 import { listCommentsBySnippet } from '../../lib/comments';
 import { Audio } from 'expo-av';
@@ -41,6 +42,7 @@ const Home = () => {
 
 	const { profileImage, setProfileImage } = useProfile();
 	const { user } = useUser()
+	const { notifCount } = useNotifications()
 
 	const handleSubmit = () => {
 		router.push('/home')
@@ -230,7 +232,7 @@ const Home = () => {
 		));
 
 		try {
-			await toggleSnippetLike(snippetId, isCurrentlyLiked, currentCount, user.$id, currentLikedBy)
+			await toggleSnippetLike(snippetId, isCurrentlyLiked, currentCount, user.$id, currentLikedBy, { ownerId: snippet.ownerId, title: snippet.title });
 		} catch (err) {
 			console.error('Failed to update like', err);
 
@@ -424,7 +426,16 @@ const Home = () => {
 						// paddingVertical: 2,
 						// marginRight: 24,
 					}]}>
-						<Ionicons name="notifications-outline" size={40} color={theme.textSecondary} style={{ marginRight: 0 }} />
+						<Pressable onPress={() => router.push('/notifications')} style={{ position: 'relative' }}>
+							<Ionicons name="notifications-outline" size={40} color={theme.textSecondary} style={{ marginRight: 0 }} />
+								{notifCount > 0 && (
+                  <View style={styles.notifBadge}>
+                    <Text style={styles.notifBadgeText}>
+                      {notifCount > 99 ? '99+' : notifCount}
+                    </Text>
+                  </View>
+                )}
+						</Pressable>
 						<Pressable onPress={() => router.push('/profile')}>
 							<Image
 								source={
@@ -640,6 +651,24 @@ const styles = StyleSheet.create({
 	scrollContent: {
 		alignItems: 'center',
 		paddingBottom: 96,
-	}
+	},
+	notifBadge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        minWidth: 18,
+        height: 18,
+        borderRadius: 9,
+        backgroundColor: '#ef4444',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 3,
+    },
+    notifBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '700',
+        fontFamily: 'inter',
+    },
 
 })

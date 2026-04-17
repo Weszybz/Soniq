@@ -8,6 +8,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../../../contexts/UserContext';
 import { listMessages, sendTextMessage, sendAudioMessage, pickAudioFile } from '../../../lib/messageService';
+import { markConversationNotificationsRead } from '../../../lib/notificationService';
+
+// themed components
 import ThemedMessageBubble from '../../../components/ThemedMessageBubble';
 import ThemedDownloadPermission from '../../../components/ThemedDownloadPermission';
 
@@ -66,6 +69,10 @@ const Chat = () => {
             return AsyncStorage.setItem('@soniq:readTimestamps', JSON.stringify(timestamps));
           })
           .catch(() => {});
+
+        if (user?.$id) {
+          markConversationNotificationsRead(user.$id, conversationId).catch(() => {});
+        }
       }
     }, [fetchMessages, conversationId])
   );

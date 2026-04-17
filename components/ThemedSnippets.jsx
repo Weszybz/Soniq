@@ -114,7 +114,8 @@ function ThemedSnippet({ snippet, currentUser, theme,
         currentlyLiked,
         currentCount,
         currentUser.$id,
-        currentLikedBy
+        currentLikedBy,
+        { ownerId: snippet.ownerId, title: snippet.title },
       );
     } catch (err) {
       console.error('Failed to update like:', err);
@@ -338,6 +339,8 @@ function ThemedSnippet({ snippet, currentUser, theme,
         <View style={[styles.commentsContainer, { backgroundColor: theme.cardBackground }]}>
           <ThemedComments
             snippetId={snippet.$id}
+            snippetOwnerId={snippet.ownerId}
+            snippetTitle={snippet.title}
             initialComments={comments}
             loading={commentsLoading}
             theme={theme}

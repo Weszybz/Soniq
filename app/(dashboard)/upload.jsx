@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import { uploadSnippetAsset } from '../../lib/snippets'
 import { getUserByUsername, searchUsersByUsername } from '../../lib/userService'
+import { createNotification } from '../../lib/notificationService';
 
 // themed components
 import ThemedView from '../../components/ThemedView';
@@ -194,13 +195,27 @@ const Upload = () => {
       setIsUploading(true)
       setLastUploadUrl(null)
 
-      await uploadSnippetAsset(selectedFile,  {
+      const { doc } = await uploadSnippetAsset(selectedFile,  {
         title: title.trim(),
         genre: genre.trim(),
         username: user.prefs?.username || user.name || 'Anonymous',
         profileImage: profileImage || null,
         collaborator: finalCollaborator,
       })
+
+      if (finalCollaborator?.userId && finalCollaborator.userId !== user.$id) {
+        createNotification({
+          recipientId: finalCollaborator.userId,
+          senderId: user.$id,
+          senderUsername: user.prefs?.username || user.name || 'Someone',
+          senderProfileImage: profileImage || null,
+          type: 'collaboration',
+          snippetId: doc.$id,
+          snippetTitle: title.trim(),
+          content: `tagged you as a collaborator on "${title.trim()}"`,
+        });
+      }
+      
       Alert.alert('Uploaded!', 'Your snippet has been uploaded successfully.')
       setSelectedFile(null)
       setTitle('')

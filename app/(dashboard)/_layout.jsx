@@ -9,6 +9,7 @@ import { useRef } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetProvider } from "../../contexts/BottomSheetContext";
 import { UnreadProvider } from "../../contexts/UnreadContext";
+import { NotificationProvider } from "../../contexts/NotificationContext";
 import ThemedText from "../../components/ThemedText";
 
 export default function AuthLayout() {
@@ -21,6 +22,7 @@ export default function AuthLayout() {
       <GestureHandlerRootView style={{ flex: 1, overflow: "visible" }}>
         <BottomSheetProvider>
           <UnreadProvider>
+            <NotificationProvider>
           <UserOnly>
             <StatusBar style="auto" />
             <Stack screenOptions={{ 
@@ -31,6 +33,7 @@ export default function AuthLayout() {
             <ThemedNavBar />
             {/* <ThemedBottomSheet ref={bottomSheetRef} /> */}
           </UserOnly>
+          </NotificationProvider>
           </UnreadProvider>
         </BottomSheetProvider>
       </GestureHandlerRootView>
