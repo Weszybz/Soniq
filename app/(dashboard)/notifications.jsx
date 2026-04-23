@@ -58,7 +58,11 @@ const Notifications = () => {
       case 'comment':
       case 'feedback':
       case 'collaboration':
-        router.push('/home');
+        if (notif.snippetId) {
+          router.push(`/snippet?snippetId=${notif.snippetId}`);
+        } else {
+          router.push('/home');
+        }
         break;
       case 'follow':
         router.push({

@@ -242,7 +242,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
   return (
     <View style={[styles.container, style]}>
       <View style={[styles.card, { backgroundColor: theme.cardBackground }]}>
-        {/* Header: Profile, Username, Genre, Options */}
         <View style={styles.cardTop}>
           <View style={styles.profileUsernameGenre}>
             <Pressable onPress={handleProfilePress}>
@@ -274,14 +273,19 @@ function ThemedSnippet({ snippet, currentUser, theme,
           )}
         </View>
 
-        {/* Title + optional collaborator */}
-        <View style={styles.titleBlock}>
+        <Pressable
+          style={({ pressed }) => [styles.titleBlock, pressed && { opacity: 0.75 }]}
+          onPress={() => router.push(`/snippet?snippetId=${snippetData.$id}`)}
+        >
           <Text style={[styles.title, { color: theme.textPrimary }]}>
             {snippetData.title}
           </Text>
           {!!snippetData.collaboratorUsername && (
             <Pressable
-              onPress={() => router.push(`/profile?userId=${snippetData.collaboratorUserId}`)}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                router.push(`/profile?userId=${snippetData.collaboratorUserId}`);
+              }}
               style={({ pressed }) => pressed && styles.collaboratorPressed}
             >
               <Text style={[styles.collaborator, { color: theme.textSecondary }]}>
@@ -289,9 +293,8 @@ function ThemedSnippet({ snippet, currentUser, theme,
               </Text>
             </Pressable>
           )}
-        </View>
+        </Pressable>
 
-        {/* Waveform Player */}
         <View style={styles.waveform}>
           <ThemedWaveform 
             snippetId={snippet.$id}
@@ -334,7 +337,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
         </View>
       </View>
 
-      {/* Comments Section */}
       {showComments && showCommentsSection && (
         <View style={[styles.commentsContainer, { backgroundColor: theme.cardBackground }]}>
           <ThemedComments

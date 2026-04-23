@@ -131,7 +131,9 @@ const SnippetCard = ({ snippetData, isMine, theme }) => {
   const router = useRouter();
 
   const handlePress = () => {
-    if (snippetData?.ownerId) {
+    if (snippetData?.$id) {
+      router.push(`/snippet?snippetId=${snippetData.$id}`);
+    } else if (snippetData?.ownerId) {
       router.push(`/profile?userId=${snippetData.ownerId}`);
     }
   };
