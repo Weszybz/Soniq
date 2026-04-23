@@ -10,6 +10,7 @@ import { useBottomSheet } from '../../contexts/BottomSheetContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 import { listCommentsBySnippet } from '../../lib/comments';
+import { searchAll } from '../../lib/searchService';
 import { Audio } from 'expo-av';
 import { useSharedValue } from 'react-native-reanimated';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
@@ -104,6 +105,12 @@ const Home = () => {
 	const soundRef = useRef(null);
 
 	const [searchQuery, setSearchQuery] = useState('');
+	const [searchResults, setSearchResults] = useState({ users: [], snippets: [] });
+	const [isSearching, setIsSearching] = useState(false);
+	const [showResults, setShowResults] = useState(false);
+	const [viewFilter, setViewFilter] = useState('all'); // 'all' | 'accounts' | 'snippets'
+	const [selectedGenre, setSelectedGenre] = useState(null); // null for all genres
+	const debounceTimerRef = useRef(null);
 
 	const [snippets, setSnippets] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -146,6 +153,79 @@ const Home = () => {
 		};
 		fetchSnippets();
 	}, [user?.$id])
+
+	// Debounced search effect (same behavior as discover page)
+	useEffect(() => {
+		if (debounceTimerRef.current) {
+			clearTimeout(debounceTimerRef.current);
+		}
+
+		if (!searchQuery || searchQuery.trim() === '') {
+			setShowResults(false);
+			setSearchResults({ users: [], snippets: [] });
+			setIsSearching(false);
+			return;
+		}
+
+		setIsSearching(true);
+		setShowResults(true);
+
+		debounceTimerRef.current = setTimeout(async () => {
+			try {
+				const results = await searchAll(searchQuery);
+				setSearchResults(results);
+			} catch (error) {
+				console.error('Search failed:', error);
+				setSearchResults({ users: [], snippets: [] });
+			} finally {
+				setIsSearching(false);
+			}
+		}, 350);
+
+		return () => {
+			if (debounceTimerRef.current) {
+				clearTimeout(debounceTimerRef.current);
+			}
+		};
+	}, [searchQuery]);
+
+	const handleUserPress = (userId) => {
+		setSearchQuery('');
+		setShowResults(false);
+		Keyboard.dismiss();
+		router.push(`/profile?userId=${userId}`);
+	};
+
+	const handleSnippetPress = (snippet) => {
+		setSearchQuery('');
+		setShowResults(false);
+		Keyboard.dismiss();
+		router.push(`/profile?userId=${snippet.ownerId}`);
+	};
+
+	const handleClearSearch = () => {
+		setSearchQuery('');
+		setShowResults(false);
+		setSearchResults({ users: [], snippets: [] });
+		setViewFilter('all');
+		setSelectedGenre(null);
+	};
+
+	const availableGenres = [...new Set(
+		searchResults.snippets
+			.map(snippet => snippet.genre)
+			.filter(Boolean)
+	)].sort();
+
+	const filteredUsers = viewFilter === 'snippets' ? [] : searchResults.users;
+
+	const filteredSnippets = viewFilter === 'accounts'
+		? []
+		: selectedGenre
+			? searchResults.snippets.filter(snippet => snippet.genre === selectedGenre)
+			: searchResults.snippets;
+
+	const hasFilteredResults = filteredUsers.length > 0 || filteredSnippets.length > 0;
 
 	// Handle pull-to-refresh
 	const handleRefresh = async () => {
@@ -467,25 +547,249 @@ const Home = () => {
 					value={searchQuery}
 					onChangeText={setSearchQuery}
 					placeholder="Search"
+					onClear={handleClearSearch}
 				/>
 				<Spacer />
 
 				
-				<ScrollView
-					style={styles.ScrollView}
-					contentContainerStyle={styles.scrollContent}
-					showsVerticalScrollIndicator={false}
+				{showResults && !isSearching && (searchResults.users.length > 0 || searchResults.snippets.length > 0) && (
+					<View style={styles.filtersContainer}>
+						<View style={styles.viewToggle}>
+							<Pressable
+								style={[
+									styles.toggleButton,
+									viewFilter === 'all' && styles.toggleButtonActive,
+									{ backgroundColor: viewFilter === 'all' ? theme.primary : theme.uiBackground }
+								]}
+								onPress={() => setViewFilter('all')}
+							>
+								<Text style={[
+									styles.toggleButtonText,
+									{ color: viewFilter === 'all' ? '#FFFFFF' : theme.textSecondary }
+								]}>
+									All
+								</Text>
+							</Pressable>
+
+							<Pressable
+								style={[
+									styles.toggleButton,
+									viewFilter === 'accounts' && styles.toggleButtonActive,
+									{ backgroundColor: viewFilter === 'accounts' ? theme.primary : theme.uiBackground }
+								]}
+								onPress={() => setViewFilter('accounts')}
+							>
+								<Text style={[
+									styles.toggleButtonText,
+									{ color: viewFilter === 'accounts' ? '#FFFFFF' : theme.textSecondary }
+								]}>
+									Accounts
+								</Text>
+							</Pressable>
+
+							<Pressable
+								style={[
+									styles.toggleButton,
+									viewFilter === 'snippets' && styles.toggleButtonActive,
+									{ backgroundColor: viewFilter === 'snippets' ? theme.primary : theme.uiBackground }
+								]}
+								onPress={() => setViewFilter('snippets')}
+							>
+								<Text style={[
+									styles.toggleButtonText,
+									{ color: viewFilter === 'snippets' ? '#FFFFFF' : theme.textSecondary }
+								]}>
+									Snippets
+								</Text>
+							</Pressable>
+						</View>
+
+						{availableGenres.length > 0 && viewFilter !== 'accounts' && (
+							<ScrollView
+								horizontal
+								showsHorizontalScrollIndicator={false}
+								style={styles.genreScroll}
+								contentContainerStyle={styles.genreScrollContent}
+							>
+								<Pressable
+									style={[
+										styles.genreChip,
+										selectedGenre === null && styles.genreChipActive,
+										{
+											backgroundColor: selectedGenre === null ? theme.primary : theme.uiBackground,
+											borderColor: theme.primary
+										}
+									]}
+									onPress={() => setSelectedGenre(null)}
+								>
+									<Text style={[
+										styles.genreChipText,
+										{ color: selectedGenre === null ? '#FFFFFF' : theme.textSecondary }
+									]}>
+										All Genres
+									</Text>
+								</Pressable>
+
+								{availableGenres.map((genre) => (
+									<Pressable
+										key={genre}
+										style={[
+											styles.genreChip,
+											selectedGenre === genre && styles.genreChipActive,
+											{
+												backgroundColor: selectedGenre === genre ? theme.primary : theme.uiBackground,
+												borderColor: theme.primary
+											}
+										]}
+										onPress={() => setSelectedGenre(genre)}
+									>
+										<Text style={[
+											styles.genreChipText,
+											{ color: selectedGenre === genre ? '#FFFFFF' : theme.textSecondary }
+										]}>
+											{genre}
+										</Text>
+									</Pressable>
+								))}
+							</ScrollView>
+						)}
+					</View>
+				)}
+
+				{showResults && !isSearching && (searchResults.users.length > 0 || searchResults.snippets.length > 0) && <Spacer />}
+
+				{/* Search Results Overlay */}
+				{showResults && (
+					<View style={[styles.resultsContainer, { backgroundColor: theme.background }]}>
+						<ScrollView
+							style={styles.resultsScroll}
+							contentContainerStyle={styles.resultsContent}
+							keyboardShouldPersistTaps="handled"
+							showsVerticalScrollIndicator={false}
+						>
+							{isSearching && (
+								<View style={styles.loadingContainer}>
+									<ActivityIndicator size="large" color={theme.textSecondary} />
+									<Text style={[styles.loadingText, { color: theme.textSecondary }]}>
+										Searching...
+									</Text>
+								</View>
+							)}
+
+							{!isSearching && !hasFilteredResults && (
+								<View style={styles.noResultsContainer}>
+									<Ionicons name="search-outline" size={48} color={theme.textSecondary} />
+									<Text style={[styles.noResultsText, { color: theme.textSecondary }]}>
+										No results found
+									</Text>
+									<Text style={[styles.noResultsSubtext, { color: theme.textSecondary }]}>
+										{selectedGenre ? 'Try a different genre or search term' : 'Try searching for different keywords'}
+									</Text>
+								</View>
+							)}
+
+							{!isSearching && hasFilteredResults && (
+								<>
+									{filteredUsers.length > 0 && (
+										<View style={styles.section}>
+											<Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+												Accounts
+											</Text>
+											{filteredUsers.map((foundUser) => (
+												<Pressable
+													key={foundUser.userId}
+													style={[styles.resultRow, { backgroundColor: theme.uiBackground }]}
+													onPress={() => handleUserPress(foundUser.userId)}
+												>
+													<Image
+														source={
+															foundUser.profileImage
+																? { uri: foundUser.profileImage }
+																: require('../../assets/icon.png')
+														}
+														style={styles.avatar}
+													/>
+													<View style={styles.userInfo}>
+														<Text style={[styles.username, { color: theme.textPrimary }]}>
+															{foundUser.username}
+														</Text>
+														{foundUser.name && foundUser.name !== foundUser.username && (
+															<Text style={[styles.name, { color: theme.textSecondary }]}>
+																{foundUser.name}
+															</Text>
+														)}
+													</View>
+													<Ionicons
+														name="chevron-forward"
+														size={20}
+														color={theme.textSecondary}
+													/>
+												</Pressable>
+											))}
+										</View>
+									)}
+
+									{filteredSnippets.length > 0 && (
+										<View style={styles.section}>
+											<Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+												Snippets
+											</Text>
+											{filteredSnippets.map((snippet) => (
+												<Pressable
+													key={snippet.$id}
+													style={[styles.resultRow, { backgroundColor: theme.uiBackground }]}
+													onPress={() => handleSnippetPress(snippet)}
+												>
+													<View style={styles.snippetIcon}>
+														<Ionicons
+															name="musical-note"
+															size={24}
+															color={theme.textSecondary}
+														/>
+													</View>
+													<View style={styles.snippetInfo}>
+														<Text
+															style={[styles.snippetTitle, { color: theme.textPrimary }]}
+															numberOfLines={1}
+														>
+															{snippet.title}
+														</Text>
+														<Text style={[styles.snippetMeta, { color: theme.textSecondary }]}>
+															{snippet.genre} • {snippet.username}
+															{snippet.collaboratorUsername ? ` ft. @${snippet.collaboratorUsername}` : ''}
+														</Text>
+													</View>
+													<Ionicons
+														name="chevron-forward"
+														size={20}
+														color={theme.textSecondary}
+													/>
+												</Pressable>
+											))}
+										</View>
+									)}
+								</>
+							)}
+						</ScrollView>
+					</View>
+				)}
+
+				{/* Scrollable feed */}
+				{!showResults && (
+					<ScrollView
+						style={styles.scrollView}
+						contentContainerStyle={styles.scrollContent}
+						showsVerticalScrollIndicator={false}
 					refreshControl={
-						<RefreshControl
-							refreshing={refreshing}
-							onRefresh={handleRefresh}
-							tintColor={theme.textSecondary}
-							colors={[theme.textSecondary]}
-						/> 
-					}
+							<RefreshControl
+									refreshing={refreshing}
+									onRefresh={handleRefresh}
+									tintColor={theme.textSecondary}
+									colors={[theme.textSecondary]}
+							/>
+						}
 				>
-					{/* Snippets Feed*/}
-					{loading && (
+					{loading && !refreshing && snippets.length === 0 && (
 						<View style={[styles.feedState, { width: '100%' }]}>
 							<ActivityIndicator size="large" color={theme.textSecondary} />
 							<Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
@@ -526,6 +830,7 @@ const Home = () => {
 						/>
 					))}
 				</ScrollView>
+				)}
 			</ThemedView>
 		</TouchableWithoutFeedback>
 	)
@@ -662,22 +967,178 @@ const styles = StyleSheet.create({
 		paddingBottom: 96,
 	},
 	notifBadge: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        minWidth: 18,
-        height: 18,
-        borderRadius: 9,
-        backgroundColor: '#ef4444',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 3,
-    },
-    notifBadgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: '700',
-        fontFamily: 'inter',
-    },
+		position: 'absolute',
+		top: 0,
+		right: 0,
+		minWidth: 18,
+		height: 18,
+		borderRadius: 9,
+		backgroundColor: '#ef4444',
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingHorizontal: 3,
+	},
+	notifBadgeText: {
+		color: '#fff',
+		fontSize: 10,
+		fontWeight: '700',
+		fontFamily: 'inter',
+	},
+	filtersContainer: {
+		width: '90%',
+		gap: 12,
+	},
+	viewToggle: {
+		flexDirection: 'row',
+		gap: 8,
+		justifyContent: 'space-between',
+	},
+	toggleButton: {
+		flex: 1,
+		paddingVertical: 10,
+		paddingHorizontal: 16,
+		borderRadius: 20,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	toggleButtonActive: {
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 2 },
+		shadowOpacity: 0.1,
+		shadowRadius: 4,
+		elevation: 2,
+	},
+	toggleButtonText: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 14,
+	},
+	genreScroll: {
+		maxHeight: 40,
+	},
+	genreScrollContent: {
+		gap: 8,
+		paddingHorizontal: 2,
+	},
+	genreChip: {
+		paddingVertical: 8,
+		paddingHorizontal: 16,
+		borderRadius: 20,
+		borderWidth: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	genreChipActive: {
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.1,
+		shadowRadius: 2,
+		elevation: 1,
+	},
+	genreChipText: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 13,
+	},
+	resultsContainer: {
+		width: '90%',
+		flex: 1,
+		borderRadius: 12,
+		overflow: 'hidden',
+	},
+	resultsScroll: {
+		flex: 1,
+	},
+	resultsContent: {
+		paddingVertical: 8,
+	},
+	loadingContainer: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: 48,
+		gap: 12,
+	},
+	loadingText: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 16,
+	},
+	noResultsContainer: {
+		alignItems: 'center',
+		justifyContent: 'center',
+		paddingVertical: 48,
+		gap: 12,
+	},
+	noResultsText: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 16,
+	},
+	noResultsSubtext: {
+		fontFamily: 'inter',
+		fontWeight: '400',
+		fontSize: 14,
+	},
+	section: {
+		marginBottom: 24,
+	},
+	sectionTitle: {
+		fontFamily: 'inter',
+		fontWeight: '700',
+		fontSize: 18,
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+	},
+	resultRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingVertical: 12,
+		paddingHorizontal: 16,
+		marginHorizontal: 8,
+		marginVertical: 4,
+		borderRadius: 12,
+		gap: 12,
+	},
+	avatar: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+	},
+	userInfo: {
+		flex: 1,
+		gap: 2,
+	},
+	username: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 16,
+	},
+	name: {
+		fontFamily: 'inter',
+		fontWeight: '400',
+		fontSize: 14,
+	},
+	snippetIcon: {
+		width: 44,
+		height: 44,
+		borderRadius: 22,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: 'rgba(128, 128, 128, 0.2)',
+	},
+	snippetInfo: {
+		flex: 1,
+		gap: 4,
+	},
+	snippetTitle: {
+		fontFamily: 'inter',
+		fontWeight: '600',
+		fontSize: 16,
+	},
+	snippetMeta: {
+		fontFamily: 'inter',
+		fontWeight: '400',
+		fontSize: 14,
+	},
 
 })
