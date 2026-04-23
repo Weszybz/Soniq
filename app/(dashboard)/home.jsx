@@ -417,11 +417,20 @@ const Home = () => {
 		}));
 	};
 
+	const getTimeBasedGreeting = () => {
+		const hour = new Date().getHours();
+		if (hour < 12) return 'Good Morning';
+		if (hour < 18) return 'Good Afternoon';
+		return 'Good Evening';
+	};
+
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 			<ThemedView style = {styles.container} safe = {true}>
 				<View style={styles.top}>
-					<Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>Good Morning, {user.prefs.firstName}</Text>
+					<Text style={{ fontSize: 20, fontWeight: '600' , fontFamily: 'inter', color: theme.textPrimary }}>
+            {getTimeBasedGreeting()}, {user?.prefs?.firstName}
+          </Text>
 					<View style={[styles.topRight, {
 						// paddingVertical: 2,
 						// marginRight: 24,
