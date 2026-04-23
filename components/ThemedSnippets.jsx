@@ -10,18 +10,8 @@ import ThemedComments from './ThemedComments';
 import Spacer from './Spacer';
 import { Colors } from '../constants/Colors';
 
-function ThemedSnippet({ snippet, currentUser, theme,
-  soundRef: externalSoundRef,
-  activeSnippetId,
-  onSnippetActivate,
-  onSnippetUpdate,
-  onOptions,
-  showComments = true,
-  showShare = true,
-  style,
-}) {
+function ThemedSnippet({ snippet, currentUser, theme, soundRef: externalSoundRef, activeSnippetId, onSnippetActivate, onSnippetUpdate, onOptions, onShare, showComments = true, showShare = true, style }) {
   const router = useRouter();
-  // Internal state
   const [snippetData, setSnippetData] = useState(snippet);
   const [isLiked, setIsLiked] = useState(
     snippet.likedBy?.includes(currentUser?.$id) || false
@@ -30,14 +20,12 @@ function ThemedSnippet({ snippet, currentUser, theme,
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
 
-  // Audio state
   const internalSoundRef = useRef(null);
   const soundRef = externalSoundRef || internalSoundRef;
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
 
-  // Check if this snippet is active
   const isActive = activeSnippetId 
     ? activeSnippetId === snippet.$id 
     : isPlaying;
@@ -48,7 +36,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     setIsLiked(snippet.likedBy?.includes(currentUser?.$id) || false);
   }, [snippet, currentUser?.$id]);
 
-  // Preload audio metadata on mount
   useEffect(() => {
     if (!snippet.fileUrl) return;
 
@@ -74,7 +61,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     preloadMetadata();
   }, [snippet.fileUrl, snippet.$id]);
 
-  // Handle like toggle
   const handleLike = async () => {
     if (!currentUser?.$id) {
       alert('Please log in to like snippets');
@@ -85,7 +71,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     const currentCount = snippetData.likes || 0;
     const currentLikedBy = snippetData.likedBy || [];
 
-    // Optimistic update
     setIsLiked(!currentlyLiked);
     const newCount = currentlyLiked 
       ? Math.max(0, currentCount - 1) 
@@ -102,12 +87,10 @@ function ThemedSnippet({ snippet, currentUser, theme,
     };
     setSnippetData(updatedSnippet);
 
-    // Notify parent of update
     if (onSnippetUpdate) {
       onSnippetUpdate(updatedSnippet);
     }
 
-    // Update in database
     try {
       await toggleSnippetLike(
         snippet.$id,
@@ -120,7 +103,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     } catch (err) {
       console.error('Failed to update like:', err);
       
-      // Rollback on error
       setIsLiked(currentlyLiked);
       setSnippetData(snippet);
       if (onSnippetUpdate) {
@@ -129,7 +111,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
     }
   };
 
-  // Handle comment toggle
   const handleCommentToggle = async () => {
     const wasVisible = showCommentsSection;
     setShowCommentsSection(!wasVisible);
@@ -178,60 +159,31 @@ function ThemedSnippet({ snippet, currentUser, theme,
   };
 
   // Handle share
-  const handleShare = async () => {
-    const currentCount = snippetData.shares || 0;
-    
-    // Optimistic update
-    const updatedSnippet = {
-      ...snippetData,
-      shares: currentCount + 1,
-    };
-    setSnippetData(updatedSnippet);
-    
-    if (onSnippetUpdate) {
-      onSnippetUpdate(updatedSnippet);
-    }
-
-    try {
-      await incrementSnippetShare(snippet.$id, currentCount);
-      alert('Share link copied!');
-    } catch (err) {
-      console.error('Failed to update share count:', err);
-      
-      // Rollback on error
-      setSnippetData(snippet);
-      if (onSnippetUpdate) {
-        onSnippetUpdate(snippet);
-      }
-      alert('Failed to share. Please try again.');
-    }
+  const handleShare = () => {
+    onShare?.(snippetData);
   };
 
-  // Handle play
   const handlePlay = () => {
     if (onSnippetActivate) {
       onSnippetActivate(snippet.$id);
     }
   };
 
-  // Handle position change
   const handlePositionChange = (pos) => {
     setPosition(pos);
   };
 
-  // Handle duration change
   const handleDurationChange = (dur) => {
     setDuration(dur);
   };
 
-  // Handle profile image press - navigate to uploader's profile
+  // Handle navigate to uploader's profile
   const handleProfilePress = () => {
     if (!snippetData.ownerId) {
       console.warn('No ownerId found for snippet:', snippet.$id);
       return;
     }
     
-    // Navigate to profile with userId parameter
     router.push(`/profile?userId=${snippetData.ownerId}`);
   };
 
@@ -310,7 +262,6 @@ function ThemedSnippet({ snippet, currentUser, theme,
           />
         </View>
 
-        {/* Reactions: Like, Comment, Share */}
         <View style={styles.reactions}>
           <Pressable style={styles.reactionsItem} onPress={handleLike}>
             <Ionicons
@@ -330,8 +281,8 @@ function ThemedSnippet({ snippet, currentUser, theme,
           
           {showShare && (
             <Pressable style={styles.reactionsItem} onPress={handleShare}>
-              <Ionicons name="paper-plane-outline" size={24} color={theme.textSecondary} />
-              <Text style={[styles.numbers, { color: theme.textPrimary }]}>{shareCount}</Text>
+              <Ionicons name="share-outline" size={24} color={theme.textSecondary} />
+              {/* <Text style={[styles.numbers, { color: theme.textPrimary }]}>{shareCount}</Text> */}
             </Pressable>
           )}
         </View>

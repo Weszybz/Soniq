@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, ScrollView, RefreshControl} from 'react-native'
-import { React, useMemo, useState, useRef, useEffect } from 'react'
+import { StyleSheet, Text, View, useColorScheme, Pressable, Image, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, ScrollView, RefreshControl, SafeAreaView } from 'react-native'
+import { React, useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { Colors } from '../../constants/Colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useProfile } from '../../contexts/ProfileContext';
@@ -8,7 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useBottomSheet } from '../../contexts/BottomSheetContext';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
+import { getSnippetById, listSnippets, toggleSnippetLike, updateSnippetCommentCount, incrementSnippetShare } from '../../lib/snippets';
 import { listCommentsBySnippet } from '../../lib/comments';
 import { Audio } from 'expo-av';
 import { useSharedValue } from 'react-native-reanimated';

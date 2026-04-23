@@ -780,7 +780,7 @@ const Home = () => {
 						style={styles.scrollView}
 						contentContainerStyle={styles.scrollContent}
 						showsVerticalScrollIndicator={false}
-					refreshControl={
+						refreshControl={
 							<RefreshControl
 									refreshing={refreshing}
 									onRefresh={handleRefresh}
@@ -788,48 +788,49 @@ const Home = () => {
 									colors={[theme.textSecondary]}
 							/>
 						}
-				>
-					{loading && !refreshing && snippets.length === 0 && (
-						<View style={[styles.feedState, { width: '100%' }]}>
-							<ActivityIndicator size="large" color={theme.textSecondary} />
-							<Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
-						</View>
-					)}
+					>
+						{loading && !refreshing && snippets.length === 0 && (
+							<View style={[styles.feedState, { width: '100%' }]}>
+								<ActivityIndicator size="large" color={theme.textSecondary} />
+								<Text style={[styles.feedStateText, { color: theme.textSecondary }]}>Loading snippets...</Text>
+							</View>
+						)}
 
-					{error && (
-						<View style={[styles.feedState, { width: '100%' }]}>
-							<Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-							<Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
-						</View>
-					)}
+						{error && (
+							<View style={[styles.feedState, { width: '100%' }]}>
+								<Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
+								<Text style={[styles.feedStateText, { color: "#ef4444" }]}>{error}</Text>
+							</View>
+						)}
 
-					{!loading && !error && snippets.length === 0 && (
-						<View style={[styles.feedState, {width: '100%'}]}>
-							<Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
-							<Text style={[styles.feedStateText, { color: theme.textSecondary }]}>No snippets yet</Text>
-							<Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
-						</View>
-					)}
+						{!loading && !error && snippets.length === 0 && (
+							<View style={[styles.feedState, {width: '100%'}]}>
+								<Ionicons name="musical-note-outline" size={48} color={theme.textSecondary} />
+								<Text style={[styles.feedStateText, { color: theme.textSecondary }]}>No snippets yet</Text>
+								<Text style={[styles.feedStateSubtext, { color: theme.textSecondary }]}>Upload your first snippet to get started</Text>
+							</View>
+						)}
 
-					{!loading && !error && snippets.map((snippet) => (
-						<ThemedSnippet
-							key={snippet.$id}
-							snippet={snippet}
-							currentUser={user}
-							theme={theme}
-							soundRef={soundRef}
-							activeSnippetId={activeSnippetId}
-							onSnippetActivate={(id) => setActiveSnippetId(id)}
-							onSnippetUpdate={(updatedSnippet) => {
-								setSnippets(prev => prev.map(s =>
-									s.$id === updatedSnippet.$id ? updatedSnippet : s
-								));
-							}}
-							onOptions={handleCardOptions}
-							style={{ width: '90%' }}
-						/>
-					))}
-				</ScrollView>
+						{!loading && !error && snippets.map((snippet) => (
+							<ThemedSnippet
+								key={snippet.$id}
+								snippet={snippet}
+								currentUser={user}
+								theme={theme}
+								soundRef={soundRef}
+								activeSnippetId={activeSnippetId}
+								onSnippetActivate={(id) => setActiveSnippetId(id)}
+								onSnippetUpdate={(updatedSnippet) => {
+									setSnippets(prev => prev.map(s =>
+										s.$id === updatedSnippet.$id ? updatedSnippet : s
+									));
+								}}
+								onOptions={handleCardOptions}
+								onShare={handleShareSnippet}
+								style={{ width: '90%' }}
+							/>
+						))}
+					</ScrollView>
 				)}
 			</ThemedView>
 		</TouchableWithoutFeedback>
